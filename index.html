@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arabic Study</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0c0b14;--surface:#161422;--surface2:#1e1b2e;--border:#2c2840;
+  --text:#f0eef8;--muted:#7b7896;
+  --pink:#f472b6;--orange:#fb923c;--red:#f87171;--purple:#a78bfa;
+  --r:12px;--rs:8px;--shadow:0 4px 28px rgba(0,0,0,.5);
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh;font-size:15px}
+
+/* SIDEBAR */
+.sidebar{width:210px;min-height:100vh;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:1.25rem .875rem;position:fixed;top:0;left:0;bottom:0;gap:.2rem}
+.logo{display:flex;flex-direction:column;align-items:center;padding:.5rem 0 1.25rem;gap:.2rem}
+.logo-ar{font-family:'Noto Naskh Arabic',serif;font-size:1.9rem;font-weight:700;background:linear-gradient(135deg,var(--pink),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.logo-en{font-size:.7rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+.nav-btn{display:flex;align-items:center;gap:.65rem;padding:.7rem .9rem;border:none;background:transparent;color:var(--muted);font-size:.875rem;font-family:inherit;border-radius:var(--rs);cursor:pointer;width:100%;text-align:left;transition:background .15s,color .15s}
+.nav-btn svg{width:17px;height:17px;fill:currentColor;flex-shrink:0}
+.nav-btn:hover{background:var(--surface2);color:var(--text)}
+.nav-btn.active{background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff}
+.sidebar-sep{height:1px;background:var(--border);margin:.4rem 0}
+.sidebar-footer{margin-top:auto;padding-top:.75rem;border-top:1px solid var(--border)}
+.streak-badge{font-size:.82rem;color:var(--muted);text-align:center;padding:.4rem}
+
+/* MAIN */
+.main-content{margin-left:210px;flex:1;padding:2.25rem 2.5rem;max-width:960px}
+.view{display:none}.view.active{display:block}
+.view-header{margin-bottom:1.75rem;display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:1rem}
+.view-header h1{font-size:1.65rem;font-weight:700}
+.sub{color:var(--muted);font-size:.875rem;margin-top:.2rem}
+.row{display:flex;gap:.75rem;flex-wrap:wrap;align-items:center}
+
+/* BUTTONS */
+.btn{padding:.6rem 1.3rem;border-radius:var(--rs);font-size:.875rem;font-family:inherit;font-weight:600;border:none;cursor:pointer;transition:opacity .15s,transform .1s}
+.btn:active{transform:scale(.97)}
+.btn-pink{background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff}
+.btn-pink:hover{opacity:.88}
+.btn-orange{background:var(--orange);color:#fff}
+.btn-orange:hover{opacity:.88}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}
+.btn-ghost:hover{color:var(--text);border-color:var(--muted)}
+.btn-red{background:transparent;color:var(--red);border:1px solid var(--red)}
+.btn-red:hover{background:var(--red);color:#fff}
+.btn-sm{padding:.4rem .85rem;font-size:.8rem}
+
+/* INPUTS */
+.inp{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.6rem .85rem;border-radius:var(--rs);font-size:.875rem;font-family:inherit;transition:border-color .15s;width:100%}
+.inp:focus{outline:none;border-color:var(--pink)}
+.inp::placeholder{color:var(--muted)}
+.inp-ar{font-family:'Noto Naskh Arabic',serif;font-size:1.15rem}
+.sel{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:.5rem .7rem;border-radius:var(--rs);font-size:.82rem;font-family:inherit;cursor:pointer}
+.sel:focus{outline:none;border-color:var(--pink)}
+
+/* TAGS / BADGES */
+.badge{font-size:.7rem;padding:.2rem .55rem;border-radius:100px;border:1px solid var(--border);color:var(--muted);background:var(--surface2)}
+.badge.new{}
+.badge.learning{border-color:var(--orange);color:var(--orange)}
+.badge.review{border-color:var(--pink);color:var(--pink)}
+.badge.mastered{border-color:var(--purple);color:var(--purple)}
+.badge.vocab{border-color:var(--pink);color:var(--pink)}
+.badge.phrase{border-color:var(--orange);color:var(--orange)}
+
+/* STAT CARDS */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.75rem}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.25rem;text-align:center;border-top:3px solid}
+.s-pink{border-top-color:var(--pink)}.s-orange{border-top-color:var(--orange)}.s-red{border-top-color:var(--red)}.s-purple{border-top-color:var(--purple)}
+.stat-val{font-size:2.2rem;font-weight:700;line-height:1;margin-bottom:.3rem}
+.stat-lbl{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+
+/* PROGRESS */
+.prog-wrap{background:var(--surface2);border-radius:100px;height:7px;overflow:hidden}
+.prog-fill{height:100%;border-radius:100px;background:linear-gradient(90deg,var(--pink),var(--purple));transition:width .4s}
+.prog-text{font-size:.75rem;color:var(--muted);text-align:right;margin-bottom:.3rem}
+
+/* DASHBOARD */
+.dash-actions{display:flex;gap:.75rem;margin-bottom:2rem}
+.lesson-list{display:flex;flex-direction:column;gap:.5rem}
+.lesson-row{display:flex;align-items:center;gap:.75rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:.7rem 1rem}
+.lesson-name{font-weight:500;min-width:140px;font-size:.9rem}
+.lesson-pct{font-size:.8rem;color:var(--muted);min-width:34px;text-align:right}
+
+/* FOLDERS */
+.folders-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem}
+.folder-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.25rem;cursor:pointer;transition:border-color .15s,transform .15s;position:relative}
+.folder-card:hover{transform:translateY(-2px)}
+.folder-card.f-pink{border-top:3px solid var(--pink)}.folder-card.f-orange{border-top:3px solid var(--orange)}.folder-card.f-red{border-top:3px solid var(--red)}.folder-card.f-purple{border-top:3px solid var(--purple)}
+.folder-card.all-cards{border-top:3px solid var(--muted);cursor:default}
+.folder-icon{font-size:1.5rem;margin-bottom:.6rem}
+.folder-name{font-weight:600;font-size:1rem;margin-bottom:.3rem}
+.folder-count{font-size:.8rem;color:var(--muted)}
+.folder-actions{position:absolute;top:.75rem;right:.75rem;display:flex;gap:.3rem;opacity:0;transition:opacity .15s}
+.folder-card:hover .folder-actions{opacity:1}
+.icon-btn{background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:var(--rs);padding:.25rem .45rem;cursor:pointer;font-size:.75rem;font-family:inherit;transition:color .15s,border-color .15s}
+.icon-btn:hover{color:var(--text);border-color:var(--muted)}
+.icon-btn.danger:hover{color:var(--red);border-color:var(--red)}
+.add-folder-card{background:transparent;border:2px dashed var(--border);border-radius:var(--r);padding:1.25rem;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.5rem;color:var(--muted);font-size:.875rem;font-family:inherit;transition:border-color .15s,color .15s;min-height:120px}
+.add-folder-card:hover{border-color:var(--pink);color:var(--pink)}
+
+/* FOLDER DETAIL */
+.folder-detail-header{display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap}
+.back-btn{background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:var(--rs);padding:.45rem .85rem;cursor:pointer;font-family:inherit;font-size:.85rem;display:flex;align-items:center;gap:.4rem}
+.back-btn:hover{color:var(--text);border-color:var(--muted)}
+.folder-title-edit{font-size:1.5rem;font-weight:700;background:transparent;border:none;color:var(--text);font-family:inherit;border-bottom:2px solid transparent;transition:border-color .15s}
+.folder-title-edit:focus{outline:none;border-bottom-color:var(--pink)}
+
+/* QUICK ADD */
+.quick-add{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.25rem;margin-bottom:1.5rem}
+.quick-add h3{font-size:.9rem;font-weight:600;color:var(--muted);margin-bottom:.85rem;text-transform:uppercase;letter-spacing:.05em}
+.quick-add-row{display:grid;grid-template-columns:1.5fr 1fr 1fr auto;gap:.6rem;align-items:end}
+.quick-add-row .form-lbl{font-size:.75rem;color:var(--muted);margin-bottom:.3rem}
+
+/* CARDS LIST IN FOLDER */
+.folder-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:.85rem}
+.card-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.1rem;transition:border-color .15s}
+.card-item:hover{border-color:var(--border)}
+.ci-ar{font-family:'Noto Naskh Arabic',serif;font-size:1.5rem;font-weight:600;direction:rtl;text-align:right;margin-bottom:.4rem;line-height:1.5}
+.ci-en{font-size:.95rem;font-weight:500;margin-bottom:.25rem}
+.ci-tr{font-size:.78rem;color:var(--muted);font-style:italic;margin-bottom:.65rem}
+.ci-footer{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.4rem}
+
+/* FLASHCARD */
+.fc-scene{perspective:1200px;width:100%;max-width:520px;margin:0 auto;cursor:pointer}
+.fc{width:100%;height:270px;position:relative;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.4,0,.2,1);border-radius:var(--r)}
+.fc.flipped{transform:rotateY(180deg)}
+.fc-face{position:absolute;inset:0;backface-visibility:hidden;border-radius:var(--r);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;border:1px solid var(--border);box-shadow:var(--shadow)}
+.fc-front{background:var(--surface)}
+.fc-back{background:var(--surface2);transform:rotateY(180deg)}
+.fc-badge{position:absolute;top:.9rem;left:.9rem;font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;padding:.18rem .5rem;border-radius:100px;background:var(--surface2);color:var(--muted)}
+.fc-ar{font-family:'Noto Naskh Arabic',serif;font-size:2.8rem;font-weight:600;text-align:center;line-height:1.4;margin-bottom:.4rem}
+.fc-tr{font-size:.95rem;color:var(--muted);font-style:italic;text-align:center}
+.fc-hint{position:absolute;bottom:1rem;font-size:.75rem;color:var(--border);letter-spacing:.04em}
+.fc-en{font-size:1.7rem;font-weight:600;text-align:center;margin-bottom:.6rem}
+.fc-ar-sm{font-family:'Noto Naskh Arabic',serif;font-size:1.3rem;color:var(--muted);text-align:center}
+.fc-tag{position:absolute;top:.9rem;right:.9rem;font-size:.68rem;color:var(--muted);background:var(--surface);padding:.18rem .5rem;border-radius:100px;border:1px solid var(--border)}
+.prog-bar-wrap{position:relative;margin-bottom:1.75rem}
+
+/* RATING */
+.rating-area{max-width:520px;margin:.9rem auto 0;text-align:center}
+.rating-lbl{font-size:.82rem;color:var(--muted);margin-bottom:.65rem}
+.rating-row{display:grid;grid-template-columns:repeat(4,1fr);gap:.65rem}
+.r-btn{display:flex;flex-direction:column;align-items:center;padding:.7rem .4rem;border-radius:var(--rs);border:2px solid;cursor:pointer;font-family:inherit;background:transparent;transition:transform .1s,opacity .15s}
+.r-btn:hover{opacity:.8;transform:translateY(-2px)}
+.r-name{font-weight:600;font-size:.875rem}
+.r-int{font-size:.68rem;margin-top:.15rem;opacity:.75}
+.r-again{border-color:var(--red);color:var(--red)}.r-hard{border-color:var(--orange);color:var(--orange)}.r-good{border-color:var(--pink);color:var(--pink)}.r-easy{border-color:var(--purple);color:var(--purple)}
+
+/* QUIZ */
+.quiz-start{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:2.5rem;text-align:center;max-width:440px;margin:3rem auto}
+.quiz-start h2{font-size:1.4rem;margin-bottom:.6rem}
+.quiz-start p{color:var(--muted);margin-bottom:1.75rem}
+.quiz-meta{display:flex;justify-content:space-between;margin-bottom:.6rem;font-size:.82rem;color:var(--muted)}
+.qprog-wrap{background:var(--surface2);border-radius:100px;height:6px;margin-bottom:1.75rem;overflow:hidden}
+.quiz-q-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:2.25rem;text-align:center;margin-bottom:1.25rem;min-height:150px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.q-prompt{font-size:.82rem;color:var(--muted);margin-bottom:.85rem}
+.q-ar{font-family:'Noto Naskh Arabic',serif;font-size:2.4rem;font-weight:600;line-height:1.5}
+.quiz-opts{display:grid;grid-template-columns:1fr 1fr;gap:.65rem}
+.q-opt{padding:.9rem 1.25rem;background:var(--surface);border:2px solid var(--border);border-radius:var(--rs);color:var(--text);font-size:.9rem;font-family:inherit;cursor:pointer;text-align:left;transition:border-color .15s;line-height:1.4}
+.q-opt:hover:not(:disabled){border-color:var(--pink)}
+.q-opt.correct{border-color:var(--purple);background:rgba(167,139,250,.1);color:var(--purple)}
+.q-opt.wrong{border-color:var(--red);background:rgba(248,113,113,.1);color:var(--red)}
+.q-opt[dir="rtl"]{font-family:'Noto Naskh Arabic',serif;font-size:1.15rem;text-align:right}
+.q-opt:disabled{cursor:default}
+.results-card{text-align:center;max-width:460px;margin:2.5rem auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:2.5rem 2rem}
+.res-circle{width:96px;height:96px;border-radius:50%;border:4px solid var(--purple);display:flex;align-items:center;justify-content:center;font-size:1.9rem;font-weight:700;margin:0 auto 1.25rem;color:var(--purple)}
+.res-breakdown{background:var(--surface2);border-radius:var(--rs);padding:.875rem;margin:1.25rem 0}
+.res-row{display:flex;justify-content:space-between;padding:.35rem 0;font-size:.875rem}
+
+/* RESULTS TAB */
+.results-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.75rem}
+.folder-results{display:flex;flex-direction:column;gap:1rem}
+.fr-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.25rem}
+.fr-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.875rem}
+.fr-name{font-weight:600;font-size:1rem}
+.fr-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;margin-bottom:.875rem}
+.fr-stat{background:var(--surface2);border-radius:var(--rs);padding:.6rem;text-align:center}
+.fr-stat-val{font-size:1.3rem;font-weight:700}
+.fr-stat-lbl{font-size:.68rem;color:var(--muted);margin-top:.15rem}
+.weak-cards{margin-top:.75rem}
+.weak-title{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.5rem}
+.weak-item{display:flex;justify-content:space-between;align-items:center;padding:.4rem 0;border-bottom:1px solid var(--border);font-size:.85rem}
+.weak-item:last-child{border-bottom:none}
+.weak-ar{font-family:'Noto Naskh Arabic',serif;font-size:1rem;direction:rtl}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:1000}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.75rem;width:100%;max-width:480px;max-height:92vh;overflow-y:auto;box-shadow:var(--shadow)}
+.modal-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem}
+.modal-hdr h2{font-size:1.1rem;font-weight:600}
+.modal-close{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:1.1rem;padding:.2rem}
+.modal-close:hover{color:var(--text)}
+.fg{margin-bottom:1.1rem}
+.fg label{display:block;font-size:.8rem;color:var(--muted);font-weight:500;margin-bottom:.35rem}
+.fg label .req{color:var(--red)}.fg label .opt{font-weight:400;font-size:.72rem}
+.rg{display:flex;gap:1.25rem}
+.rl{display:flex;align-items:center;gap:.35rem;font-size:.875rem;cursor:pointer}
+.modal-actions{display:flex;justify-content:flex-end;gap:.65rem;margin-top:1.25rem}
+
+/* ADD-EXISTING MODAL */
+.existing-list{max-height:360px;overflow-y:auto;display:flex;flex-direction:column;gap:.4rem;margin-top:.75rem}
+.existing-item{display:flex;align-items:center;gap:.75rem;padding:.6rem .85rem;background:var(--surface2);border-radius:var(--rs);cursor:pointer;border:1px solid transparent;transition:border-color .15s}
+.existing-item:hover{border-color:var(--pink)}
+.existing-item input[type="checkbox"]{accent-color:var(--pink);width:14px;height:14px;cursor:pointer;flex-shrink:0}
+.ei-ar{font-family:'Noto Naskh Arabic',serif;font-size:1rem;direction:rtl}
+.ei-en{font-size:.82rem;color:var(--muted)}
+
+/* EMPTY */
+.empty{text-align:center;padding:4rem 2rem;color:var(--muted)}
+.empty-icon{font-size:2.5rem;margin-bottom:.875rem}
+.empty h2{font-size:1.2rem;color:var(--text);margin-bottom:.4rem}
+.empty p{margin-bottom:1.25rem;font-size:.9rem}
+
+/* UTIL */
+.mt1{margin-top:1rem}.mt2{margin-top:1.5rem}
+.sep{height:1px;background:var(--border);margin:1.25rem 0}
+
+@media(max-width:700px){
+  .sidebar{width:56px;padding:.875rem .5rem}
+  .logo-en,.nav-btn span,.sidebar-footer{display:none}
+  .logo-ar{font-size:1.3rem}
+  .nav-btn{justify-content:center;padding:.7rem}
+  .main-content{margin-left:56px;padding:1.25rem 1rem}
+  .stats-grid,.results-summary{grid-template-columns:repeat(2,1fr)}
+  .rating-row,.quiz-opts{grid-template-columns:repeat(2,1fr)}
+  .quick-add-row{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="logo">
+    <span class="logo-ar">عربي</span>
+    <span class="logo-en">Arabic Study</span>
+  </div>
+  <button class="nav-btn active" data-view="dashboard">
+    <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+    <span>Dashboard</span>
+  </button>
+  <button class="nav-btn" data-view="folders">
+    <svg viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
+    <span>Folders</span>
+  </button>
+  <button class="nav-btn" data-view="study">
+    <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+    <span>Flashcards</span>
+  </button>
+  <button class="nav-btn" data-view="quiz">
+    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg>
+    <span>Quiz</span>
+  </button>
+  <div class="sidebar-sep"></div>
+  <button class="nav-btn" data-view="results">
+    <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+    <span>Results</span>
+  </button>
+  <div class="sidebar-footer">
+    <div class="streak-badge">🔥 <span id="streak-count">0</span> day streak</div>
+  </div>
+</nav>
+
+<main class="main-content">
+
+  <!-- DASHBOARD -->
+  <section id="view-dashboard" class="view active">
+    <header class="view-header">
+      <div><h1>Dashboard</h1><p class="sub" id="dash-date"></p></div>
+    </header>
+    <div class="stats-grid">
+      <div class="stat-card s-pink"><div class="stat-val" id="s-due">0</div><div class="stat-lbl">Due Today</div></div>
+      <div class="stat-card s-purple"><div class="stat-val" id="s-mastered">0</div><div class="stat-lbl">Mastered</div></div>
+      <div class="stat-card s-orange"><div class="stat-val" id="s-learning">0</div><div class="stat-lbl">Learning</div></div>
+      <div class="stat-card s-red"><div class="stat-val" id="s-total">0</div><div class="stat-lbl">Total Cards</div></div>
+    </div>
+    <div class="dash-actions">
+      <button class="btn btn-pink" onclick="app.navigate('study')">Study Flashcards</button>
+      <button class="btn btn-orange" onclick="app.navigate('quiz')">Take a Quiz</button>
+      <button class="btn btn-ghost" onclick="app.navigate('folders')">Manage Folders</button>
+    </div>
+    <h2 style="font-size:1rem;color:var(--muted);margin-bottom:.75rem;font-weight:500;text-transform:uppercase;letter-spacing:.05em">Progress by Folder</h2>
+    <div class="lesson-list" id="dash-folders"></div>
+  </section>
+
+  <!-- FOLDERS -->
+  <section id="view-folders" class="view">
+    <div id="folder-list-view">
+      <header class="view-header">
+        <div><h1>Folders</h1><p class="sub">Organise your cards by subject</p></div>
+        <button class="btn btn-pink" id="btn-new-folder">+ New Folder</button>
+      </header>
+      <div class="folders-grid" id="folders-grid"></div>
+    </div>
+    <div id="folder-detail-view" style="display:none">
+      <div class="folder-detail-header">
+        <button class="back-btn" id="btn-back-folders">← Folders</button>
+        <input class="folder-title-edit" id="folder-title-input" type="text" value="">
+        <button class="btn btn-red btn-sm" id="btn-delete-folder">Delete Folder</button>
+      </div>
+      <div class="quick-add" id="quick-add-panel">
+        <h3>Quick Add Card</h3>
+        <div class="quick-add-row">
+          <div>
+            <div class="form-lbl">Arabic *</div>
+            <input class="inp inp-ar" id="qa-arabic" dir="rtl" placeholder="مرحبا">
+          </div>
+          <div>
+            <div class="form-lbl">English *</div>
+            <input class="inp" id="qa-english" placeholder="Hello">
+          </div>
+          <div>
+            <div class="form-lbl">Transliteration</div>
+            <input class="inp" id="qa-trans" placeholder="Marhaba">
+          </div>
+          <div>
+            <div class="form-lbl">&nbsp;</div>
+            <button class="btn btn-pink" id="btn-qa-add" style="white-space:nowrap">+ Add</button>
+          </div>
+        </div>
+        <div style="margin-top:.75rem;display:flex;gap:.5rem;align-items:center">
+          <select class="sel" id="qa-type"><option value="vocabulary">Vocabulary</option><option value="phrase">Phrase</option></select>
+          <button class="btn btn-ghost btn-sm" id="btn-add-existing">+ Add existing cards</button>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.875rem">
+        <h2 id="folder-cards-heading" style="font-size:1rem;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.05em"></h2>
+      </div>
+      <div class="folder-cards" id="folder-cards-grid"></div>
+      <div id="folder-empty" class="empty" style="display:none">
+        <div class="empty-icon">📂</div>
+        <h2>No cards yet</h2>
+        <p>Use quick add above to add your first card.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FLASHCARDS -->
+  <section id="view-study" class="view">
+    <header class="view-header">
+      <h1>Flashcards</h1>
+      <div class="row">
+        <select class="sel" id="study-filter"><option value="due">Due cards</option><option value="all">All cards</option><option value="new">New only</option></select>
+        <select class="sel" id="study-folder-sel"><option value="">All Cards</option></select>
+      </div>
+    </header>
+    <div id="study-empty" class="empty" style="display:none">
+      <div class="empty-icon">✓</div>
+      <h2>All caught up!</h2>
+      <p>No cards due. Come back later or switch to All cards.</p>
+      <button class="btn btn-ghost" onclick="app.setStudyFilter('all')">Study all cards</button>
+    </div>
+    <div id="flashcard-wrapper">
+      <div class="prog-bar-wrap">
+        <div class="prog-text" id="study-prog-text"></div>
+        <div class="prog-wrap"><div class="prog-fill" id="study-prog-bar"></div></div>
+      </div>
+      <div class="fc-scene" id="fc-scene">
+        <div class="fc" id="flashcard">
+          <div class="fc-face fc-front">
+            <div class="fc-badge" id="fc-badge"></div>
+            <div class="fc-ar" id="fc-ar" dir="rtl"></div>
+            <div class="fc-tr" id="fc-tr"></div>
+            <div class="fc-hint">Tap to reveal</div>
+          </div>
+          <div class="fc-face fc-back">
+            <div class="fc-en" id="fc-en"></div>
+            <div class="fc-ar-sm" id="fc-ar-sm" dir="rtl"></div>
+            <div class="fc-tag" id="fc-tag"></div>
+          </div>
+        </div>
+      </div>
+      <div class="rating-area" id="rating-area" style="display:none">
+        <p class="rating-lbl">How well did you know it?</p>
+        <div class="rating-row">
+          <button class="r-btn r-again" data-q="0"><span class="r-name">Again</span><span class="r-int">&lt;1d</span></button>
+          <button class="r-btn r-hard" data-q="1"><span class="r-name">Hard</span><span class="r-int" id="ri-hard"></span></button>
+          <button class="r-btn r-good" data-q="2"><span class="r-name">Good</span><span class="r-int" id="ri-good"></span></button>
+          <button class="r-btn r-easy" data-q="3"><span class="r-name">Easy</span><span class="r-int" id="ri-easy"></span></button>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:.875rem">
+        <button class="btn btn-ghost" id="btn-flip">Flip card</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- QUIZ -->
+  <section id="view-quiz" class="view">
+    <header class="view-header">
+      <h1>Quiz</h1>
+      <div class="row">
+        <select class="sel" id="quiz-dir"><option value="ar-en">Arabic → English</option><option value="en-ar">English → Arabic</option></select>
+        <select class="sel" id="quiz-folder-sel"><option value="">All Cards</option></select>
+      </div>
+    </header>
+    <div id="quiz-start">
+      <div class="quiz-start">
+        <h2>Ready to test yourself?</h2>
+        <p>Multiple choice · 10 questions per round</p>
+        <button class="btn btn-pink" id="btn-start-quiz">Start Quiz</button>
+      </div>
+    </div>
+    <div id="quiz-session" style="display:none">
+      <div class="quiz-meta"><span id="q-num">Q 1/10</span><span>Score: <strong id="q-score">0</strong></span></div>
+      <div class="qprog-wrap"><div class="prog-fill" id="quiz-prog"></div></div>
+      <div class="quiz-q-card">
+        <p class="q-prompt" id="q-prompt"></p>
+        <div class="q-ar" id="q-ar" dir="rtl"></div>
+      </div>
+      <div class="quiz-opts" id="quiz-opts"></div>
+    </div>
+    <div id="quiz-results" style="display:none">
+      <div class="results-card">
+        <div class="res-circle" id="res-circle"></div>
+        <h2 id="res-title"></h2>
+        <p id="res-sub" style="color:var(--muted);margin-top:.4rem"></p>
+        <div class="res-breakdown" id="res-breakdown"></div>
+        <button class="btn btn-pink" id="btn-quiz-again">Play Again</button>
+        <button class="btn btn-ghost mt1" onclick="app.navigate('results')">View Results</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- RESULTS -->
+  <section id="view-results" class="view">
+    <header class="view-header">
+      <div><h1>Results</h1><p class="sub">Your progress and performance by folder</p></div>
+    </header>
+    <div class="results-summary">
+      <div class="stat-card s-pink"><div class="stat-val" id="rs-quizzes">0</div><div class="stat-lbl">Quizzes Taken</div></div>
+      <div class="stat-card s-purple"><div class="stat-val" id="rs-accuracy">—</div><div class="stat-lbl">Quiz Accuracy</div></div>
+      <div class="stat-card s-orange"><div class="stat-val" id="rs-reviewed">0</div><div class="stat-lbl">Cards Reviewed</div></div>
+      <div class="stat-card s-red"><div class="stat-val" id="rs-mastered">0</div><div class="stat-lbl">Mastered</div></div>
+    </div>
+    <div class="folder-results" id="folder-results"></div>
+  </section>
+
+</main>
+
+<!-- MODAL: Add/Edit Card -->
+<div id="modal-card" class="modal-overlay" style="display:none">
+  <div class="modal">
+    <div class="modal-hdr"><h2 id="mc-title">Add Card</h2><button class="modal-close" onclick="app.closeCardModal()">✕</button></div>
+    <form id="card-form">
+      <input type="hidden" id="cf-id">
+      <input type="hidden" id="cf-folder">
+      <div class="fg"><label>Type</label>
+        <div class="rg"><label class="rl"><input type="radio" name="ctype" value="vocabulary" checked> Vocabulary</label><label class="rl"><input type="radio" name="ctype" value="phrase"> Phrase</label></div>
+      </div>
+      <div class="fg"><label>Arabic <span class="req">*</span></label><input class="inp inp-ar" id="cf-arabic" dir="rtl" placeholder="مرحبا" required></div>
+      <div class="fg"><label>English <span class="req">*</span></label><input class="inp" id="cf-english" placeholder="Hello" required></div>
+      <div class="fg"><label>Transliteration <span class="opt">(optional)</span></label><input class="inp" id="cf-trans" placeholder="Marhaba"></div>
+      <div class="fg"><label>Notes <span class="opt">(optional)</span></label><textarea class="inp" id="cf-notes" rows="2" placeholder="Additional context..."></textarea></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" onclick="app.closeCardModal()">Cancel</button>
+        <button type="submit" class="btn btn-pink">Save Card</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL: New/Edit Folder -->
+<div id="modal-folder" class="modal-overlay" style="display:none">
+  <div class="modal" style="max-width:360px">
+    <div class="modal-hdr"><h2 id="mf-title">New Folder</h2><button class="modal-close" onclick="app.closeFolderModal()">✕</button></div>
+    <div class="fg"><label>Folder name <span class="req">*</span></label><input class="inp" id="mf-name" placeholder="e.g. Greetings, Lesson 1" required></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="app.closeFolderModal()">Cancel</button>
+      <button class="btn btn-pink" id="btn-save-folder">Create Folder</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Add Existing Cards to Folder -->
+<div id="modal-existing" class="modal-overlay" style="display:none">
+  <div class="modal">
+    <div class="modal-hdr"><h2>Add Existing Cards</h2><button class="modal-close" onclick="app.closeExistingModal()">✕</button></div>
+    <p style="font-size:.85rem;color:var(--muted)">Select cards to add to this folder:</p>
+    <div class="existing-list" id="existing-list"></div>
+    <div class="modal-actions" style="margin-top:1rem">
+      <button class="btn btn-ghost" onclick="app.closeExistingModal()">Cancel</button>
+      <button class="btn btn-pink" id="btn-confirm-existing">Add Selected</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── HELPERS ──────────────────────────────────────────────────────────────────
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2);
+const COLORS = ['f-pink','f-orange','f-red','f-purple'];
+const folderColor = (i) => COLORS[i % COLORS.length];
+
+// ── DATA ─────────────────────────────────────────────────────────────────────
+const DB = {
+  KEY: 'arabic_v2',
+  load() { try { return JSON.parse(localStorage.getItem(this.KEY)) || this.seed(); } catch { return this.seed(); } },
+  save(d) { localStorage.setItem(this.KEY, JSON.stringify(d)); },
+  seed() {
+    const now = Date.now();
+    const card = (id,type,ar,en,tr) => ({id,type,arabic:ar,english:en,transliteration:tr,notes:'',
+      interval:1,easeFactor:2.5,repetitions:0,status:'new',due:now,created:now,
+      reviewCount:0,correctCount:0,lastReviewed:null});
+    const cards = [
+      card('1','vocabulary','مرحبا','Hello','Marhaba'),
+      card('2','vocabulary','شكراً','Thank you','Shukran'),
+      card('3','vocabulary','نعم','Yes',"Na'am"),
+      card('4','vocabulary','لا','No','La'),
+      card('5','vocabulary','من فضلك','Please','Min fadlak'),
+      card('6','vocabulary','مع السلامة','Goodbye',"Ma'a as-salama"),
+      card('7','phrase','كيف حالك؟','How are you?','Kayfa halak?'),
+      card('8','phrase','أنا بخير','I am fine','Ana bikhayr'),
+      card('9','phrase','ما اسمك؟','What is your name?','Ma ismuk?'),
+      card('10','phrase','صباح الخير','Good morning','Sabah al-khayr'),
+      card('11','phrase','مساء الخير','Good evening',"Masa' al-khayr"),
+      card('12','vocabulary','بيت','House','Bayt'),
+      card('13','vocabulary','كتاب','Book','Kitab'),
+      card('14','vocabulary','ماء','Water',"Ma'a"),
+      card('15','vocabulary','خبز','Bread','Khubz'),
+      card('16','vocabulary','يمين','Right','Yamin'),
+      card('17','vocabulary','يسار','Left','Yasar'),
+    ];
+    const folders = [
+      {id:'f1',name:'Greetings',cardIds:['1','2','3','4','5','6','7','8','9','10','11'],created:now},
+      {id:'f2',name:'Home & Objects',cardIds:['12','13'],created:now},
+      {id:'f3',name:'Food & Navigation',cardIds:['14','15','16','17'],created:now},
+    ];
+    return { cards, folders, quizHistory:[], streak:0, lastStudied:null };
+  }
+};
+
+// ── SM-2 ─────────────────────────────────────────────────────────────────────
+const SM2 = {
+  review(card, q) {
+    const sm = [1,2,4,5][q];
+    if (sm < 3) { card.repetitions=0; card.interval=1; }
+    else {
+      if (!card.repetitions) card.interval=1;
+      else if (card.repetitions===1) card.interval=6;
+      else card.interval=Math.round(card.interval*card.easeFactor);
+      card.repetitions++;
+    }
+    card.easeFactor = Math.max(1.3, card.easeFactor+0.1-(5-sm)*(0.08+(5-sm)*0.02));
+    card.due = Date.now()+card.interval*86400000;
+    card.status = !card.repetitions?'new':card.repetitions<3?'learning':card.interval<21?'review':'mastered';
+    card.reviewCount = (card.reviewCount||0)+1;
+    if (q>=2) card.correctCount = (card.correctCount||0)+1;
+    card.lastReviewed = Date.now();
+  },
+  preview(card, q) {
+    const c={...card}; this.review(c,q);
+    const d=Math.round((c.due-Date.now())/86400000);
+    return d<1?'<1d':d===1?'1d':d<30?d+'d':Math.round(d/30)+'mo';
+  }
+};
+
+// ── APP ───────────────────────────────────────────────────────────────────────
+const app = {
+  data: null,
+  currentFolder: null,
+  // study
+  queue:[],qi:0,filter:'due',studyFolderSel:'',flipped:false,
+  // quiz
+  qqs:[],qqi:0,qscore:0,qAnswered:false,qResults:[],
+
+  init() {
+    this.data = DB.load();
+    this.updateStreak();
+    this.bindNav();
+    this.bindStudy();
+    this.bindQuiz();
+    this.bindFolders();
+    this.bindCardForm();
+    this.bindFolderModal();
+    this.navigate('dashboard');
+    this.syncFolderDropdowns();
+  },
+  save() { DB.save(this.data); },
+
+  // ── NAV ──
+  navigate(v) {
+    document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(el=>el.classList.remove('active'));
+    document.getElementById('view-'+v).classList.add('active');
+    document.querySelector(`.nav-btn[data-view="${v}"]`).classList.add('active');
+    this['render_'+v]?.();
+  },
+  bindNav() {
+    document.querySelectorAll('.nav-btn').forEach(b=>b.addEventListener('click',()=>this.navigate(b.dataset.view)));
+  },
+
+  // ── STREAK ──
+  updateStreak() {
+    const today=new Date().toDateString(), last=this.data.lastStudied;
+    if (last) { const d=(new Date(today)-new Date(last))/86400000; if(d===1)this.data.streak++; else if(d>1)this.data.streak=0; }
+    document.getElementById('streak-count').textContent=this.data.streak||0;
+  },
+
+  // ── DASHBOARD ──
+  render_dashboard() {
+    const now=Date.now(), cards=this.data.cards;
+    document.getElementById('s-due').textContent=cards.filter(c=>c.due<=now).length;
+    document.getElementById('s-mastered').textContent=cards.filter(c=>c.status==='mastered').length;
+    document.getElementById('s-learning').textContent=cards.filter(c=>c.status==='learning'||c.status==='review').length;
+    document.getElementById('s-total').textContent=cards.length;
+    document.getElementById('dash-date').textContent=new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+    // folder progress
+    const out=this.data.folders.map(f=>{
+      const fc=cards.filter(c=>f.cardIds.includes(c.id));
+      const pct=fc.length?Math.round(fc.filter(c=>c.status==='mastered').length/fc.length*100):0;
+      return `<div class="lesson-row">
+        <div class="lesson-name">${f.name}</div>
+        <div style="flex:1"><div class="prog-wrap"><div class="prog-fill" style="width:${pct}%"></div></div></div>
+        <div class="lesson-pct">${pct}%</div>
+        <div class="badge">${fc.length} cards</div>
+      </div>`;
+    }).join('');
+    document.getElementById('dash-folders').innerHTML=out||'<p style="color:var(--muted);font-size:.875rem">No folders yet. <button class="btn btn-ghost btn-sm" onclick="app.navigate(\'folders\')">Create one →</button></p>';
+  },
+
+  // ── FOLDERS ──
+  bindFolders() {
+    document.getElementById('btn-new-folder').addEventListener('click',()=>this.openFolderModal());
+    document.getElementById('btn-back-folders').addEventListener('click',()=>this.closeFolderDetail());
+    document.getElementById('btn-delete-folder').addEventListener('click',()=>this.deleteCurrentFolder());
+    document.getElementById('folder-title-input').addEventListener('change',e=>{
+      if(this.currentFolder){ this.currentFolder.name=e.target.value.trim()||this.currentFolder.name; this.save(); this.syncFolderDropdowns(); }
+    });
+    document.getElementById('btn-qa-add').addEventListener('click',()=>this.quickAddCard());
+    document.getElementById('qa-arabic').addEventListener('keydown',e=>{if(e.key==='Enter')this.quickAddCard();});
+    document.getElementById('btn-add-existing').addEventListener('click',()=>this.openExistingModal());
+    document.getElementById('btn-confirm-existing').addEventListener('click',()=>this.confirmAddExisting());
+    document.getElementById('btn-save-folder').addEventListener('click',()=>this.saveFolderModal());
+  },
+  render_folders() {
+    this.closeFolderDetail(true);
+    this.renderFolderGrid();
+  },
+  renderFolderGrid() {
+    const cards=this.data.cards;
+    const allPct=cards.length?Math.round(cards.filter(c=>c.status==='mastered').length/cards.length*100):0;
+    let html=`<div class="folder-card all-cards" style="cursor:pointer" onclick="app.navigate('study')">
+      <div class="folder-icon">📚</div>
+      <div class="folder-name">All Cards</div>
+      <div class="folder-count">${cards.length} cards · ${allPct}% mastered</div>
+    </div>`;
+    this.data.folders.forEach((f,i)=>{
+      const fc=cards.filter(c=>f.cardIds.includes(c.id));
+      const pct=fc.length?Math.round(fc.filter(c=>c.status==='mastered').length/fc.length*100):0;
+      html+=`<div class="folder-card ${folderColor(i)}" onclick="app.openFolderDetail('${f.id}')">
+        <div class="folder-actions" onclick="event.stopPropagation()">
+          <button class="icon-btn" onclick="app.renameFolderInGrid('${f.id}')">✏️</button>
+          <button class="icon-btn danger" onclick="app.deleteFolderById('${f.id}')">🗑</button>
+        </div>
+        <div class="folder-icon">📂</div>
+        <div class="folder-name">${f.name}</div>
+        <div class="folder-count">${fc.length} cards · ${pct}% mastered</div>
+      </div>`;
+    });
+    html+=`<button class="add-folder-card" onclick="app.openFolderModal()"><span style="font-size:1.5rem">+</span><span>New Folder</span></button>`;
+    document.getElementById('folders-grid').innerHTML=html;
+  },
+  openFolderDetail(fid) {
+    this.currentFolder=this.data.folders.find(f=>f.id===fid);
+    if(!this.currentFolder) return;
+    document.getElementById('folder-list-view').style.display='none';
+    document.getElementById('folder-detail-view').style.display='block';
+    document.getElementById('folder-title-input').value=this.currentFolder.name;
+    this.renderFolderCards();
+  },
+  closeFolderDetail(silent) {
+    this.currentFolder=null;
+    document.getElementById('folder-list-view').style.display='block';
+    document.getElementById('folder-detail-view').style.display='none';
+    if(!silent) this.renderFolderGrid();
+  },
+  renderFolderCards() {
+    if(!this.currentFolder) return;
+    const fc=this.data.cards.filter(c=>this.currentFolder.cardIds.includes(c.id));
+    document.getElementById('folder-cards-heading').textContent=`${fc.length} card${fc.length!==1?'s':''}`;
+    document.getElementById('folder-empty').style.display=fc.length?'none':'block';
+    document.getElementById('folder-cards-grid').innerHTML=fc.map(card=>`
+      <div class="card-item">
+        <div class="ci-ar">${card.arabic}</div>
+        <div class="ci-en">${card.english}</div>
+        ${card.transliteration?`<div class="ci-tr">${card.transliteration}</div>`:''}
+        <div class="ci-footer">
+          <div style="display:flex;gap:.35rem;flex-wrap:wrap">
+            <span class="badge ${card.type==='vocabulary'?'vocab':'phrase'}">${card.type}</span>
+            <span class="badge ${card.status}">${card.status}</span>
+          </div>
+          <div style="display:flex;gap:.3rem">
+            <button class="icon-btn" onclick="app.openCardModal('${card.id}')">✏️</button>
+            <button class="icon-btn danger" onclick="app.removeFromFolder('${card.id}')">✕</button>
+          </div>
+        </div>
+      </div>`).join('');
+  },
+  quickAddCard() {
+    const ar=document.getElementById('qa-arabic').value.trim();
+    const en=document.getElementById('qa-english').value.trim();
+    const tr=document.getElementById('qa-trans').value.trim();
+    const type=document.getElementById('qa-type').value;
+    if(!ar||!en) { document.getElementById('qa-arabic').focus(); return; }
+    const now=Date.now();
+    const card={id:uid(),type,arabic:ar,english:en,transliteration:tr,notes:'',interval:1,easeFactor:2.5,repetitions:0,status:'new',due:now,created:now,reviewCount:0,correctCount:0,lastReviewed:null};
+    this.data.cards.push(card);
+    if(this.currentFolder) this.currentFolder.cardIds.push(card.id);
+    this.save();
+    document.getElementById('qa-arabic').value='';
+    document.getElementById('qa-english').value='';
+    document.getElementById('qa-trans').value='';
+    document.getElementById('qa-arabic').focus();
+    this.renderFolderCards();
+    this.syncFolderDropdowns();
+  },
+  removeFromFolder(cid) {
+    if(!this.currentFolder) return;
+    this.currentFolder.cardIds=this.currentFolder.cardIds.filter(id=>id!==cid);
+    this.save(); this.renderFolderCards();
+  },
+  deleteCurrentFolder() {
+    if(!this.currentFolder) return;
+    if(!confirm(`Delete folder "${this.currentFolder.name}"? Cards will not be deleted.`)) return;
+    this.data.folders=this.data.folders.filter(f=>f.id!==this.currentFolder.id);
+    this.save(); this.closeFolderDetail(); this.syncFolderDropdowns();
+  },
+  deleteFolderById(fid) {
+    const f=this.data.folders.find(x=>x.id===fid);
+    if(!f||!confirm(`Delete folder "${f.name}"? Cards will not be deleted.`)) return;
+    this.data.folders=this.data.folders.filter(x=>x.id!==fid);
+    this.save(); this.renderFolderGrid(); this.syncFolderDropdowns();
+  },
+  renameFolderInGrid(fid) {
+    const f=this.data.folders.find(x=>x.id===fid);
+    if(!f) return;
+    const name=prompt('Rename folder:',f.name);
+    if(name&&name.trim()) { f.name=name.trim(); this.save(); this.renderFolderGrid(); this.syncFolderDropdowns(); }
+  },
+  openExistingModal() {
+    if(!this.currentFolder) return;
+    const notIn=this.data.cards.filter(c=>!this.currentFolder.cardIds.includes(c.id));
+    if(!notIn.length){ alert('All cards are already in this folder.'); return; }
+    document.getElementById('existing-list').innerHTML=notIn.map(c=>`
+      <label class="existing-item">
+        <input type="checkbox" value="${c.id}">
+        <div style="flex:1">
+          <div class="ei-ar">${c.arabic}</div>
+          <div class="ei-en">${c.english}</div>
+        </div>
+      </label>`).join('');
+    document.getElementById('modal-existing').style.display='flex';
+  },
+  confirmAddExisting() {
+    const checked=[...document.querySelectorAll('#existing-list input:checked')].map(i=>i.value);
+    if(this.currentFolder) { checked.forEach(id=>{ if(!this.currentFolder.cardIds.includes(id)) this.currentFolder.cardIds.push(id); }); }
+    this.save(); this.closeExistingModal(); this.renderFolderCards();
+  },
+  closeExistingModal() { document.getElementById('modal-existing').style.display='none'; },
+
+  // ── FOLDER MODAL ──
+  openFolderModal() { document.getElementById('mf-name').value=''; document.getElementById('modal-folder').style.display='flex'; setTimeout(()=>document.getElementById('mf-name').focus(),50); },
+  closeFolderModal() { document.getElementById('modal-folder').style.display='none'; },
+  saveFolderModal() {
+    const name=document.getElementById('mf-name').value.trim();
+    if(!name) return;
+    this.data.folders.push({id:uid(),name,cardIds:[],created:Date.now()});
+    this.save(); this.closeFolderModal(); this.renderFolderGrid(); this.syncFolderDropdowns();
+  },
+
+  // ── CARD MODAL ──
+  openCardModal(cid) {
+    const card=this.data.cards.find(c=>c.id===cid);
+    document.getElementById('card-form').reset();
+    document.getElementById('mc-title').textContent=card?'Edit Card':'Add Card';
+    document.getElementById('cf-id').value=cid||'';
+    if(card){
+      document.querySelector(`input[name="ctype"][value="${card.type}"]`).checked=true;
+      document.getElementById('cf-arabic').value=card.arabic;
+      document.getElementById('cf-english').value=card.english;
+      document.getElementById('cf-trans').value=card.transliteration||'';
+      document.getElementById('cf-notes').value=card.notes||'';
+    }
+    document.getElementById('modal-card').style.display='flex';
+    setTimeout(()=>document.getElementById('cf-arabic').focus(),50);
+  },
+  closeCardModal() { document.getElementById('modal-card').style.display='none'; },
+  bindCardForm() {
+    document.getElementById('card-form').addEventListener('submit',e=>{ e.preventDefault(); this.saveCard(); });
+    document.getElementById('modal-card').addEventListener('click',e=>{ if(e.target.id==='modal-card') this.closeCardModal(); });
+    document.getElementById('modal-existing').addEventListener('click',e=>{ if(e.target.id==='modal-existing') this.closeExistingModal(); });
+    document.getElementById('modal-folder').addEventListener('click',e=>{ if(e.target.id==='modal-folder') this.closeFolderModal(); });
+  },
+  bindFolderModal() {
+    document.getElementById('mf-name').addEventListener('keydown',e=>{ if(e.key==='Enter') this.saveFolderModal(); });
+  },
+  saveCard() {
+    const id=document.getElementById('cf-id').value;
+    const data={type:document.querySelector('input[name="ctype"]:checked').value,arabic:document.getElementById('cf-arabic').value.trim(),english:document.getElementById('cf-english').value.trim(),transliteration:document.getElementById('cf-trans').value.trim(),notes:document.getElementById('cf-notes').value.trim()};
+    if(!data.arabic||!data.english) return;
+    if(id) { const c=this.data.cards.find(x=>x.id===id); if(c) Object.assign(c,data); }
+    else { const c={id:uid(),...data,interval:1,easeFactor:2.5,repetitions:0,status:'new',due:Date.now(),created:Date.now(),reviewCount:0,correctCount:0,lastReviewed:null}; this.data.cards.push(c); if(this.currentFolder) this.currentFolder.cardIds.push(c.id); }
+    this.save(); this.closeCardModal();
+    if(this.currentFolder) this.renderFolderCards();
+  },
+
+  // ── SYNC DROPDOWNS ──
+  syncFolderDropdowns() {
+    const opts='<option value="">All Cards</option>'+this.data.folders.map(f=>`<option value="${f.id}">${f.name}</option>`).join('');
+    ['study-folder-sel','quiz-folder-sel'].forEach(id=>{ const s=document.getElementById(id),v=s.value; s.innerHTML=opts; s.value=v; });
+  },
+
+  // ── FLASHCARDS ──
+  bindStudy() {
+    document.getElementById('fc-scene').addEventListener('click',()=>this.flip());
+    document.getElementById('btn-flip').addEventListener('click',()=>this.flip());
+    document.querySelectorAll('.r-btn').forEach(b=>b.addEventListener('click',()=>this.rate(+b.dataset.q)));
+    document.getElementById('study-filter').addEventListener('change',e=>{ this.filter=e.target.value; this.startStudy(); });
+    document.getElementById('study-folder-sel').addEventListener('change',e=>{ this.studyFolderSel=e.target.value; this.startStudy(); });
+  },
+  render_study() { this.startStudy(); },
+  setStudyFilter(f) { this.filter=f; document.getElementById('study-filter').value=f; this.startStudy(); },
+  startStudy() {
+    const now=Date.now(); let cards=[...this.data.cards];
+    if(this.studyFolderSel){ const f=this.data.folders.find(x=>x.id===this.studyFolderSel); if(f) cards=cards.filter(c=>f.cardIds.includes(c.id)); }
+    if(this.filter==='due') cards=cards.filter(c=>c.due<=now);
+    else if(this.filter==='new') cards=cards.filter(c=>c.status==='new');
+    cards.sort((a,b)=>a.due-b.due||a.easeFactor-b.easeFactor);
+    this.queue=cards; this.qi=0; this.flipped=false;
+    document.getElementById('study-empty').style.display=cards.length?'none':'block';
+    document.getElementById('flashcard-wrapper').style.display=cards.length?'block':'none';
+    if(cards.length) this.showCard();
+  },
+  showCard() {
+    const card=this.queue[this.qi]; if(!card){this.startStudy();return;}
+    document.getElementById('flashcard').classList.remove('flipped');
+    this.flipped=false;
+    document.getElementById('rating-area').style.display='none';
+    document.getElementById('btn-flip').style.display='inline-block';
+    document.getElementById('fc-ar').textContent=card.arabic;
+    document.getElementById('fc-tr').textContent=card.transliteration||'';
+    document.getElementById('fc-en').textContent=card.english;
+    document.getElementById('fc-ar-sm').textContent=card.arabic;
+    const f=this.data.folders.find(x=>x.cardIds.includes(card.id));
+    document.getElementById('fc-tag').textContent=f?f.name:'';
+    document.getElementById('fc-badge').textContent=card.type;
+    document.getElementById('ri-hard').textContent=SM2.preview(card,1);
+    document.getElementById('ri-good').textContent=SM2.preview(card,2);
+    document.getElementById('ri-easy').textContent=SM2.preview(card,3);
+    const pct=this.queue.length?Math.round(this.qi/this.queue.length*100):0;
+    document.getElementById('study-prog-bar').style.width=pct+'%';
+    document.getElementById('study-prog-text').textContent=`${this.qi} / ${this.queue.length}`;
+  },
+  flip() {
+    if(this.flipped) return;
+    this.flipped=true;
+    document.getElementById('flashcard').classList.add('flipped');
+    document.getElementById('rating-area').style.display='block';
+    document.getElementById('btn-flip').style.display='none';
+  },
+  rate(q) {
+    const card=this.queue[this.qi];
+    const idx=this.data.cards.findIndex(c=>c.id===card.id);
+    if(idx!==-1) SM2.review(this.data.cards[idx],q);
+    this.data.lastStudied=new Date().toDateString();
+    this.save(); this.updateStreak();
+    if(q===0) this.queue.push(card);
+    this.qi++;
+    if(this.qi>=this.queue.length) this.startStudy(); else this.showCard();
+  },
+
+  // ── QUIZ ──
+  bindQuiz() {
+    document.getElementById('btn-start-quiz').addEventListener('click',()=>this.startQuiz());
+    document.getElementById('btn-quiz-again').addEventListener('click',()=>this.startQuiz());
+  },
+  render_quiz() {
+    document.getElementById('quiz-start').style.display='block';
+    document.getElementById('quiz-session').style.display='none';
+    document.getElementById('quiz-results').style.display='none';
+  },
+  startQuiz() {
+    const fid=document.getElementById('quiz-folder-sel').value;
+    let pool=[...this.data.cards];
+    if(fid){ const f=this.data.folders.find(x=>x.id===fid); if(f) pool=pool.filter(c=>f.cardIds.includes(c.id)); }
+    if(pool.length<4){ alert('Need at least 4 cards for a quiz.'); return; }
+    this.qqs=pool.sort(()=>Math.random()-.5).slice(0,Math.min(10,pool.length));
+    this.qqi=0; this.qscore=0; this.qResults=[];
+    document.getElementById('quiz-start').style.display='none';
+    document.getElementById('quiz-session').style.display='block';
+    document.getElementById('quiz-results').style.display='none';
+    this.showQ();
+  },
+  showQ() {
+    const q=this.qqs[this.qqi], dir=document.getElementById('quiz-dir').value, total=this.qqs.length;
+    document.getElementById('q-num').textContent=`Q ${this.qqi+1}/${total}`;
+    document.getElementById('q-score').textContent=this.qscore;
+    document.getElementById('quiz-prog').style.width=`${(this.qqi/total)*100}%`;
+    const disp=document.getElementById('q-ar');
+    if(dir==='ar-en'){ document.getElementById('q-prompt').textContent='What does this mean?'; disp.textContent=q.arabic; disp.setAttribute('dir','rtl'); disp.style.fontFamily=''; disp.style.fontSize=''; }
+    else { document.getElementById('q-prompt').textContent='How do you say this in Arabic?'; disp.textContent=q.english; disp.removeAttribute('dir'); disp.style.fontFamily='Inter,sans-serif'; disp.style.fontSize='1.5rem'; }
+    const wrong=this.data.cards.filter(c=>c.id!==q.id).sort(()=>Math.random()-.5).slice(0,3);
+    const opts=[q,...wrong].sort(()=>Math.random()-.5);
+    document.getElementById('quiz-opts').innerHTML='';
+    opts.forEach(opt=>{
+      const btn=document.createElement('button');
+      btn.className='q-opt';
+      if(dir==='ar-en') btn.textContent=opt.english;
+      else { btn.textContent=opt.arabic; btn.setAttribute('dir','rtl'); }
+      btn.addEventListener('click',()=>this.answerQ(opt.id===q.id,btn,q,dir));
+      document.getElementById('quiz-opts').appendChild(btn);
+    });
+    this.qAnswered=false;
+  },
+  answerQ(correct,clicked,q,dir) {
+    if(this.qAnswered) return; this.qAnswered=true;
+    document.querySelectorAll('.q-opt').forEach(b=>{ b.disabled=true; const ok=dir==='ar-en'?b.textContent===q.english:b.textContent===q.arabic; if(ok) b.classList.add('correct'); });
+    if(!correct) clicked.classList.add('wrong');
+    if(correct) this.qscore++;
+    this.qResults.push({card:q,correct});
+    setTimeout(()=>{ this.qqi++; this.qqi>=this.qqs.length?this.showResults():this.showQ(); },1200);
+  },
+  showResults() {
+    const total=this.qqs.length, pct=Math.round(this.qscore/total*100);
+    // save quiz history
+    const fid=document.getElementById('quiz-folder-sel').value;
+    const f=this.data.folders.find(x=>x.id===fid);
+    this.data.quizHistory.push({id:uid(),date:Date.now(),folderId:fid||null,folderName:f?f.name:'All Cards',score:this.qscore,total,correct:this.qscore,incorrect:total-this.qscore});
+    this.save();
+    document.getElementById('quiz-session').style.display='none';
+    document.getElementById('quiz-results').style.display='block';
+    const circle=document.getElementById('res-circle');
+    circle.textContent=pct+'%';
+    const col=pct>=80?'var(--purple)':pct>=50?'var(--orange)':'var(--red)';
+    circle.style.borderColor=col; circle.style.color=col;
+    document.getElementById('res-title').textContent=pct===100?'Perfect!':pct>=80?'Great job!':pct>=50?'Keep going!':'Keep practising!';
+    document.getElementById('res-sub').textContent=`${this.qscore} / ${total} correct`;
+    document.getElementById('res-breakdown').innerHTML=this.qResults.map(r=>`<div class="res-row"><span dir="rtl" style="font-family:'Noto Naskh Arabic',serif">${r.card.arabic}</span><span>${r.card.english}</span><span style="color:${r.correct?'var(--purple)':'var(--red)'}">${r.correct?'✓':'✗'}</span></div>`).join('');
+  },
+
+  // ── RESULTS ──
+  render_results() {
+    const cards=this.data.cards, qh=this.data.quizHistory;
+    const totalQ=qh.length;
+    const avgAcc=totalQ?Math.round(qh.reduce((s,q)=>s+q.score/q.total,0)/totalQ*100):null;
+    const reviewed=cards.filter(c=>c.reviewCount>0).length;
+    const mastered=cards.filter(c=>c.status==='mastered').length;
+    document.getElementById('rs-quizzes').textContent=totalQ;
+    document.getElementById('rs-accuracy').textContent=avgAcc!==null?avgAcc+'%':'—';
+    document.getElementById('rs-reviewed').textContent=reviewed;
+    document.getElementById('rs-mastered').textContent=mastered;
+
+    // Per-folder results
+    const allFolders=[{id:null,name:'All Cards',cardIds:cards.map(c=>c.id)},...this.data.folders];
+    const colors=['var(--muted)','var(--pink)','var(--orange)','var(--red)','var(--purple)'];
+    document.getElementById('folder-results').innerHTML=allFolders.map((f,fi)=>{
+      const fc=cards.filter(c=>f.cardIds.includes(c.id));
+      if(!fc.length&&f.id) return '';
+      const newC=fc.filter(c=>c.status==='new').length;
+      const learning=fc.filter(c=>c.status==='learning').length;
+      const review=fc.filter(c=>c.status==='review').length;
+      const masteredC=fc.filter(c=>c.status==='mastered').length;
+      const pct=fc.length?Math.round(masteredC/fc.length*100):0;
+      const fqh=f.id?qh.filter(q=>q.folderId===f.id):qh;
+      const qCount=fqh.length;
+      const qAcc=qCount?Math.round(fqh.reduce((s,q)=>s+q.score/q.total,0)/qCount*100):null;
+      const fcReviewed=fc.filter(c=>c.reviewCount>0);
+      const fcAcc=fcReviewed.length?Math.round(fcReviewed.reduce((s,c)=>s+(c.correctCount||0)/c.reviewCount,0)/fcReviewed.length*100):null;
+      // weakest cards
+      const studied=fc.filter(c=>c.reviewCount>0).sort((a,b)=>a.easeFactor-b.easeFactor).slice(0,3);
+      return `<div class="fr-card" style="border-top:3px solid ${colors[fi%colors.length]}">
+        <div class="fr-header">
+          <div class="fr-name">${f.name}</div>
+          <div class="badge">${fc.length} cards</div>
+        </div>
+        <div class="fr-stats">
+          <div class="fr-stat"><div class="fr-stat-val" style="color:var(--muted)">${newC}</div><div class="fr-stat-lbl">New</div></div>
+          <div class="fr-stat"><div class="fr-stat-val" style="color:var(--orange)">${learning}</div><div class="fr-stat-lbl">Learning</div></div>
+          <div class="fr-stat"><div class="fr-stat-val" style="color:var(--pink)">${review}</div><div class="fr-stat-lbl">Review</div></div>
+          <div class="fr-stat"><div class="fr-stat-val" style="color:var(--purple)">${masteredC}</div><div class="fr-stat-lbl">Mastered</div></div>
+        </div>
+        <div class="prog-text">${pct}% mastered</div>
+        <div class="prog-wrap" style="margin-bottom:.875rem"><div class="prog-fill" style="width:${pct}%"></div></div>
+        <div style="display:flex;gap:1.5rem;font-size:.85rem;color:var(--muted);margin-bottom:${studied.length?'.875rem':'0'}">
+          <span>📝 ${qCount} quiz${qCount!==1?'zes':''} · ${qAcc!==null?qAcc+'% acc':'no data'}</span>
+          <span>🃏 ${fcReviewed.length} cards reviewed · ${fcAcc!==null?fcAcc+'% correct':'no data'}</span>
+        </div>
+        ${studied.length?`<div class="weak-cards"><div class="weak-title">Needs work</div>${studied.map(c=>`<div class="weak-item"><span class="weak-ar">${c.arabic}</span><span style="color:var(--muted);font-size:.82rem">${c.english}</span><span class="badge">${Math.round((c.correctCount||0)/c.reviewCount*100)}% correct</span></div>`).join('')}</div>`:''}
+      </div>`;
+    }).join('');
+  }
+};
+
+document.addEventListener('DOMContentLoaded',()=>app.init());
+</script>
+</body>
+</html>
