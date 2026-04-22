@@ -339,6 +339,10 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
     <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
     <span>Results</span>
   </button>
+  <button class="nav-btn" data-view="search">
+    <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+    <span>Search</span>
+  </button>
   <button class="nav-btn" data-view="settings">
     <svg viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
     <span>Settings</span>
@@ -390,8 +394,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
         <div class="qa-title">Quick Add Card</div>
         <div class="qa-row">
           <div><div class="qa-lbl">Arabic *</div><input class="inp inp-ar" id="qa-arabic" dir="rtl" placeholder="مرحبا"></div>
-          <div><div class="qa-lbl">English *</div><input class="inp" id="qa-english" placeholder="Hello"></div>
           <div><div class="qa-lbl">Transliteration</div><input class="inp" id="qa-trans" placeholder="Marhaba"></div>
+          <div><div class="qa-lbl">English *</div><input class="inp" id="qa-english" placeholder="Hello"></div>
           <div><div class="qa-lbl">&nbsp;</div><button class="btn btn-pink" id="btn-qa-add">+ Add</button></div>
         </div>
         <div class="qa-bottom">
@@ -482,6 +486,15 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
           </select>
         </div>
         <div class="qs-section">
+          <div class="qs-label">Direction</div>
+          <div class="opt-group" id="qs-dir-group">
+            <button class="opt-btn active" data-dir="ar-en">Arabic → English</button>
+            <button class="opt-btn" data-dir="tr-en">Transliteration → English</button>
+            <button class="opt-btn" data-dir="en-tr">English → Transliteration</button>
+            <button class="opt-btn" data-dir="mixed">Mixed</button>
+          </div>
+        </div>
+        <div class="qs-section">
           <div class="qs-label">Quiz type</div>
           <div class="opt-group" id="qs-mode-group">
             <button class="opt-btn active" data-mode="mc">Multiple Choice</button>
@@ -550,6 +563,13 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
         </div>
       </div>
     </div>
+  </section>
+
+  <!-- SEARCH -->
+  <section id="view-search" class="view">
+    <header class="view-header"><div><h1>Search</h1><p class="sub">Find any card by English or transliteration</p></div></header>
+    <input class="inp inp-lg" id="global-search" placeholder="Type English or transliteration…" oninput="app.renderSearch()" autocomplete="off" style="margin-bottom:1.25rem">
+    <div class="cards-grid" id="search-results-list"></div>
   </section>
 
   <!-- SETTINGS -->
@@ -651,8 +671,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
         <div class="rg"><label class="rl"><input type="radio" name="ctype" value="vocabulary" checked> Vocabulary</label><label class="rl"><input type="radio" name="ctype" value="phrase"> Phrase</label></div>
       </div>
       <div class="fg"><label>Arabic <span style="color:var(--red)">*</span></label><input class="inp inp-ar" id="cf-arabic" dir="rtl" placeholder="مرحبا" required></div>
-      <div class="fg"><label>English <span style="color:var(--red)">*</span></label><input class="inp" id="cf-english" placeholder="Hello" required></div>
       <div class="fg"><label>Transliteration <span style="color:var(--muted);font-size:.72rem;font-weight:400">(optional)</span></label><input class="inp" id="cf-trans" placeholder="Marhaba"></div>
+      <div class="fg"><label>English <span style="color:var(--red)">*</span></label><input class="inp" id="cf-english" placeholder="Hello" required></div>
       <div class="fg">
         <label>Alternative / acceptable answers <span style="color:var(--muted);font-size:.72rem;font-weight:400">(Franco, variants, typo forgiveness)</span></label>
         <div class="alt-fields" id="alt-fields">
@@ -709,7 +729,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2);
 const COLORS = ['f-pink','f-orange','f-red','f-purple'];
 const fc = (i) => COLORS[i % COLORS.length];
-const sortFolders = arr => [...arr].sort((a,b) => a.name.localeCompare(b.name));
+const sortFolders = arr => [...arr].sort((a,b) => a.name.localeCompare(b.name, undefined, {numeric:true, sensitivity:'base'}));
 const norm = s => (s||'').trim().toLowerCase().replace(/[.,!?،؟'"'"'"]/g,'').replace(/\s+/g,' ');
 
 // ── BUNDLED SEED DATA (163 cards, 12 folders) ────────────────────────────────
@@ -776,8 +796,8 @@ const app = {
   // study
   studyFolder: null, queue:[], qi:0, filter:'due', flipped:false,
   // quiz
-  quizMode:'mc', quizCount:10, quizFolderId:'',
-  qqs:[], qqi:0, qscore:0, qAnswered:false, qResults:[],
+  quizMode:'mc', quizDir:'ar-en', quizCount:10, quizFolderId:'',
+  qqs:[], qqi:0, qscore:0, qAnswered:false, qResults:[], _currentDir:'ar-en',
   // move/copy state
   mmcCardId:null, mmcAction:'move',
 
@@ -1167,6 +1187,12 @@ const app = {
 
   // ── QUIZ ───────────────────────────────────────────────────────────────────
   bindQuiz(){
+    // direction toggle
+    document.getElementById('qs-dir-group').addEventListener('click',e=>{
+      const btn=e.target.closest('.opt-btn');if(!btn)return;
+      document.querySelectorAll('#qs-dir-group .opt-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');this.quizDir=btn.dataset.dir;
+    });
     // mode toggle
     document.getElementById('qs-mode-group').addEventListener('click',e=>{
       const btn=e.target.closest('.opt-btn');if(!btn)return;
@@ -1223,12 +1249,32 @@ const app = {
     document.getElementById('q-num').textContent=`Q ${this.qqi+1} / ${total}`;
     document.getElementById('q-score').textContent=this.qscore;
     document.getElementById('quiz-prog').style.width=`${(this.qqi/total)*100}%`;
-    // Always show arabic + transliteration as the question stimulus
-    document.getElementById('q-ar').textContent=q.arabic;
-    document.getElementById('q-ar').setAttribute('dir','rtl');
-    document.getElementById('q-tr').textContent=q.transliteration||'';
-    document.getElementById('q-prompt').textContent='What does this mean?';
-    // show correct section
+    // Resolve direction (mixed picks per-question)
+    let dir=this.quizDir;
+    if(dir==='mixed'){
+      const opts=['ar-en','tr-en','en-tr'];
+      dir=opts[Math.floor(Math.random()*opts.length)];
+      // fall back to ar-en if card has no transliteration
+      if(dir==='tr-en'&&!q.transliteration)dir='ar-en';
+      if(dir==='en-tr'&&!q.transliteration)dir='ar-en';
+    }
+    if(dir==='tr-en'&&!q.transliteration)dir='ar-en';
+    this._currentDir=dir;
+    const arEl=document.getElementById('q-ar');
+    const trEl=document.getElementById('q-tr');
+    if(dir==='ar-en'){
+      document.getElementById('q-prompt').textContent='What does this mean in English?';
+      arEl.textContent=q.arabic;arEl.setAttribute('dir','rtl');arEl.style.fontFamily="'Noto Naskh Arabic',serif";arEl.style.fontSize='2.3rem';
+      trEl.textContent='';
+    } else if(dir==='tr-en'){
+      document.getElementById('q-prompt').textContent='Translate to English:';
+      arEl.textContent=q.transliteration;arEl.removeAttribute('dir');arEl.style.fontFamily='inherit';arEl.style.fontSize='2rem';
+      trEl.textContent='';
+    } else {
+      document.getElementById('q-prompt').textContent='Give the transliteration:';
+      arEl.textContent=q.english;arEl.removeAttribute('dir');arEl.style.fontFamily='inherit';arEl.style.fontSize='2rem';
+      trEl.textContent='';
+    }
     document.getElementById('mc-section').style.display=this.quizMode==='mc'?'block':'none';
     document.getElementById('ta-section').style.display=this.quizMode==='type'?'block':'none';
     if(this.quizMode==='mc')this.buildMCOptions(q);
@@ -1236,13 +1282,17 @@ const app = {
     this.qAnswered=false;
   },
   buildMCOptions(q){
-    const wrong=this.data.cards.filter(c=>c.id!==q.id).sort(()=>Math.random()-.5).slice(0,3);
+    const dir=this._currentDir||'ar-en';
+    const answerField=dir==='en-tr'?'transliteration':'english';
+    let pool=this.data.cards.filter(c=>c.id!==q.id);
+    if(dir==='en-tr')pool=pool.filter(c=>c.transliteration);
+    const wrong=pool.sort(()=>Math.random()-.5).slice(0,3);
     const opts=[q,...wrong].sort(()=>Math.random()-.5);
     document.getElementById('quiz-opts').innerHTML='';
     opts.forEach(opt=>{
       const btn=document.createElement('button');
       btn.className='q-opt';
-      btn.innerHTML=`<span class="opt-en">${opt.english}</span>${opt.transliteration?`<span class="opt-tr">${opt.transliteration}</span>`:''}`;
+      btn.innerHTML=`<span class="opt-en">${opt[answerField]||opt.english}</span>`;
       btn.dataset.id=opt.id;
       btn.addEventListener('click',()=>this.answerMC(opt.id===q.id,btn,q));
       document.getElementById('quiz-opts').appendChild(btn);
@@ -1272,7 +1322,10 @@ const app = {
     const input=document.getElementById('ta-input').value;
     if(!input.trim())return;
     const q=this._currentQ;
-    const acceptable=[q.english,q.transliteration,...(q.altAnswers||[])].filter(Boolean);
+    const dir=this._currentDir||'ar-en';
+    const acceptable=dir==='en-tr'
+      ?[q.transliteration,...(q.altAnswers||[])].filter(Boolean)
+      :[q.english,...(q.altAnswers||[])].filter(Boolean);
     const correct=acceptable.some(a=>norm(a)===norm(input));
     this.qAnswered=true;
     document.getElementById('ta-input').disabled=true;
@@ -1532,6 +1585,39 @@ const app = {
     if(info)info.style.display=connected?'block':'none';
     if(connected&&document.getElementById('gh-connected-repo'))
       document.getElementById('gh-connected-repo').textContent=`${this.ghConfig.owner}/${this.ghConfig.repo} (${this.ghConfig.branch})`;
+  },
+
+  render_search(){
+    document.getElementById('global-search').value='';
+    document.getElementById('search-results-list').innerHTML='';
+    setTimeout(()=>document.getElementById('global-search').focus(),50);
+  },
+
+  renderSearch(){
+    const q=(document.getElementById('global-search')?.value||'').trim().toLowerCase();
+    const list=document.getElementById('search-results-list');
+    if(!q){list.innerHTML='';return;}
+    const results=this.data.cards.filter(c=>
+      c.english.toLowerCase().includes(q)||
+      (c.transliteration||'').toLowerCase().includes(q)||
+      c.arabic.includes(q)
+    );
+    const folderOf=c=>this.data.folders.find(f=>f.cardIds.includes(c.id));
+    list.innerHTML=results.map(card=>{
+      const f=folderOf(card);
+      return `<div class="card-item">
+        <div class="ci-ar">${card.arabic}</div>
+        <div class="ci-en">${card.english}</div>
+        ${card.transliteration?`<div class="ci-tr">${card.transliteration}</div>`:''}
+        <div class="ci-footer">
+          <div style="display:flex;gap:.3rem;flex-wrap:wrap">
+            <span class="badge ${card.type==='vocabulary'?'vocab':'phrase'}">${card.type}</span>
+            ${f?`<span class="badge">${f.name}</span>`:''}
+          </div>
+          <button class="icon-btn" onclick="app.openCardModal('${card.id}')">✏️</button>
+        </div>
+      </div>`;
+    }).join('')||`<p style="color:var(--muted);font-size:.875rem">No cards match "<strong>${q}</strong>".</p>`;
   },
 
   render_settings(){
