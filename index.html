@@ -276,6 +276,29 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
 .empty h2{font-size:1.2rem;color:var(--text);margin-bottom:.4rem}
 .empty p{margin-bottom:1.25rem;font-size:.875rem}
 
+/* SETTINGS */
+.settings-search-row{display:flex;gap:.65rem;margin-bottom:1.25rem;align-items:center}
+.settings-search-row .inp{flex:1}
+.settings-count{font-size:.8rem;color:var(--muted);white-space:nowrap}
+.sync-panel{margin-top:2rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.5rem}
+.sync-panel h2{font-size:1rem;font-weight:600;margin-bottom:.3rem}
+.sync-panel>p{font-size:.83rem;color:var(--muted);margin-bottom:1.1rem;line-height:1.6}
+.gh-field-row{display:grid;grid-template-columns:1fr 1fr;gap:.65rem}
+.gh-connected-box{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:.875rem 1rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem}
+.gh-connected-repo{font-size:.85rem;font-weight:600;color:var(--purple)}
+.gh-status{font-size:.78rem;margin-top:.5rem;min-height:1.1em}
+.gh-status.synced{color:var(--purple)}.gh-status.error{color:var(--red)}.gh-status.syncing{color:var(--orange)}.gh-status.pending{color:var(--muted)}
+.export-panel{margin-top:.875rem;display:flex;flex-direction:column;gap:.5rem}
+.export-panel textarea{font-size:.72rem;font-family:monospace;resize:vertical;min-height:110px}
+/* SYNC INDICATOR */
+.sync-indicator{font-size:.72rem;padding:.25rem .5rem;border-radius:100px;transition:all .3s;text-align:center}
+.sync-indicator.idle{color:transparent}
+.sync-indicator.pending{color:var(--muted)}
+.sync-indicator.syncing{color:var(--orange);animation:pulse 1s infinite}
+.sync-indicator.synced{color:var(--purple)}
+.sync-indicator.error{color:var(--red)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
 @media(max-width:700px){
   .sidebar{width:56px;padding:.875rem .5rem}
   .logo-en,.nav-btn span,.sidebar-footer{display:none}
@@ -316,8 +339,13 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
     <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
     <span>Results</span>
   </button>
+  <button class="nav-btn" data-view="settings">
+    <svg viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
+    <span>Settings</span>
+  </button>
   <div class="sidebar-footer">
     <div class="streak-badge">🔥 <span id="streak-count">0</span> day streak</div>
+    <div class="sync-indicator idle" id="sync-indicator" title="GitHub sync status">·</div>
   </div>
 </nav>
 
@@ -524,6 +552,80 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
     </div>
   </section>
 
+  <!-- SETTINGS -->
+  <section id="view-settings" class="view">
+    <header class="view-header">
+      <div><h1>Settings</h1><p class="sub">Manage cards · auto-sync to GitHub</p></div>
+      <button class="btn btn-pink" onclick="app.openCardModal('')">+ Add Card</button>
+    </header>
+
+    <!-- Card list -->
+    <div class="settings-search-row">
+      <input class="inp" id="settings-search" placeholder="Search cards by Arabic, English or transliteration…" oninput="app.renderSettingsCards()">
+      <span class="settings-count" id="settings-count"></span>
+    </div>
+    <div class="cards-grid" id="settings-cards-list"></div>
+
+    <!-- GitHub auto-sync -->
+    <div class="sync-panel">
+      <h2>☁️ GitHub Auto-Sync</h2>
+      <p>Connect your GitHub repository once. Every card change will be pushed automatically — Vercel redeploys and the data is permanent.</p>
+
+      <!-- Not connected: setup form -->
+      <div id="gh-config-form">
+        <div class="gh-field-row" style="margin-bottom:.65rem">
+          <div class="fg" style="margin:0">
+            <label style="font-size:.78rem;color:var(--muted);font-weight:500;display:block;margin-bottom:.3rem">Personal Access Token</label>
+            <input class="inp" id="gh-token" type="password" placeholder="ghp_xxxxxxxxxxxx" autocomplete="off">
+          </div>
+          <div class="fg" style="margin:0">
+            <label style="font-size:.78rem;color:var(--muted);font-weight:500;display:block;margin-bottom:.3rem">Repository <span style="font-weight:400">(owner/repo)</span></label>
+            <input class="inp" id="gh-repo" placeholder="username/arabic-app">
+          </div>
+        </div>
+        <div class="gh-field-row" style="margin-bottom:.875rem">
+          <div class="fg" style="margin:0">
+            <label style="font-size:.78rem;color:var(--muted);font-weight:500;display:block;margin-bottom:.3rem">Branch</label>
+            <input class="inp" id="gh-branch" placeholder="main" value="main">
+          </div>
+          <div class="fg" style="margin:0">
+            <label style="font-size:.78rem;color:var(--muted);font-weight:500;display:block;margin-bottom:.3rem">File path</label>
+            <input class="inp" id="gh-path" placeholder="index.html" value="index.html">
+          </div>
+        </div>
+        <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
+          <button class="btn btn-purple" onclick="app.saveGhConfig()">Connect &amp; Test</button>
+          <span style="font-size:.78rem;color:var(--muted)">Token needs <strong>Contents: Read &amp; write</strong> permission</span>
+        </div>
+        <div class="gh-status" id="gh-status-msg"></div>
+      </div>
+
+      <!-- Connected state -->
+      <div id="gh-connected-info" style="display:none">
+        <div class="gh-connected-box">
+          <div>
+            <div style="font-size:.75rem;color:var(--muted);margin-bottom:.15rem">Connected repository</div>
+            <div class="gh-connected-repo" id="gh-connected-repo"></div>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="app.clearGhConfig()">Disconnect</button>
+        </div>
+        <div class="gh-status" id="gh-status-msg-connected" style="margin-top:.5rem"></div>
+      </div>
+
+      <!-- Manual export fallback -->
+      <details style="margin-top:1.1rem">
+        <summary style="cursor:pointer;font-size:.8rem;color:var(--muted);user-select:none;padding:.3rem 0">▸ Manual export (fallback if GitHub is not configured)</summary>
+        <div class="export-panel" style="margin-top:.65rem">
+          <button class="btn btn-ghost btn-sm" style="align-self:flex-start" onclick="app.showExportData()">Generate export JSON</button>
+          <div id="export-panel" style="display:none;flex-direction:column;gap:.5rem">
+            <textarea class="inp" id="export-json" readonly rows="5" style="font-size:.72rem;font-family:monospace;resize:vertical" onclick="this.select()"></textarea>
+            <button class="btn btn-ghost btn-sm" style="align-self:flex-start" onclick="navigator.clipboard.writeText(document.getElementById('export-json').value).then(()=>this.textContent='Copied ✓').catch(()=>document.getElementById('export-json').select())">Copy to clipboard</button>
+          </div>
+        </div>
+      </details>
+    </div>
+  </section>
+
   <!-- RESULTS -->
   <section id="view-results" class="view">
     <header class="view-header"><div><h1>Results</h1><p class="sub">Progress and performance by folder</p></div></header>
@@ -535,17 +637,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
     </div>
     <div class="folder-results" id="folder-results"></div>
 
-    <!-- Data Recovery -->
-    <div style="margin-top:2rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.25rem">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.875rem;flex-wrap:wrap;gap:.5rem">
-        <div>
-          <div style="font-weight:600;font-size:.95rem">Data Recovery</div>
-          <div style="font-size:.78rem;color:var(--muted);margin-top:.15rem">Restore cards from a previous version saved in your browser</div>
-        </div>
-        <button class="btn btn-ghost btn-sm" onclick="app.renderRecovery()">Scan for old data</button>
-      </div>
-      <div id="recovery-panel"></div>
-    </div>
   </section>
 
 </main>
@@ -624,88 +715,41 @@ const norm = s => (s||'').trim().toLowerCase().replace(/[.,!?،؟'"'"'"]/g,'').r
 // ── BUNDLED SEED DATA (163 cards, 12 folders) ────────────────────────────────
 const SEED_DATA = {"cards":[{"id":"1","type":"vocabulary","arabic":"مرحبا","english":"Hello","transliteration":"Marhaba","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776773885179,"created":1776773885179,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"2","type":"vocabulary","arabic":"شكراً","english":"Thank you","transliteration":"Shukran","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776773885179,"created":1776773885179,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"3","type":"vocabulary","arabic":"نعم","english":"Yes","transliteration":"Na'am","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776773885179,"created":1776773885179,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"4","type":"vocabulary","arabic":"لا","english":"No","transliteration":"La","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776773885179,"created":1776773885179,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"5","type":"vocabulary","arabic":"من فضلك","english":"Please","transliteration":"Min fadlak","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776773885179,"created":1776773885179,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"6","type":"vocabulary","arabic":"مع السلامة","english":"Goodbye","transliteration":"Ma'a as-salama","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776773885179,"created":1776773885179,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"7","type":"phrase","arabic":"كيف حالك؟","english":"How are you?","transliteration":"Kayfa halak?","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776773885179,"created":1776773885179,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"8","type":"phrase","arabic":"أنا بخير","english":"I am fine","transliteration":"Ana bikhayr","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776773885179,"created":1776773885179,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"9","type":"phrase","arabic":"ما اسمك؟","english":"What is your name?","transliteration":"Ma ismuk?","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776773885179,"created":1776773885179,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"10","type":"phrase","arabic":"صباح الخير","english":"Good morning","transliteration":"Sabah al-khayr","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776773885179,"created":1776773885179,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"11","type":"phrase","arabic":"مساء الخير","english":"Good evening","transliteration":"Masa' al-khayr","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776773885179,"created":1776773885179,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"12","type":"vocabulary","arabic":"بيت","english":"House","transliteration":"Bayt","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776773885179,"created":1776773885179,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"13","type":"vocabulary","arabic":"كتاب","english":"Book","transliteration":"Kitab","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776773885179,"created":1776773885179,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"14","type":"vocabulary","arabic":"ماء","english":"Water","transliteration":"Ma'a","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776773885179,"created":1776773885179,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"15","type":"vocabulary","arabic":"خبز","english":"Bread","transliteration":"Khubz","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776773885179,"created":1776773885179,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"16","type":"vocabulary","arabic":"يمين","english":"Right","transliteration":"Yamin","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776773885179,"created":1776773885179,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"17","type":"vocabulary","arabic":"يسار","english":"Left","transliteration":"Yasar","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776773885179,"created":1776773885179,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8r4a3gorg3bd1xbng","type":"vocabulary","arabic":"مين","english":"min","transliteration":"who","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776783664924,"created":1776783664924,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8r4fx7gw57gwodg89","type":"vocabulary","arabic":"شو","english":"what","transliteration":"shu","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776783672475,"created":1776783672475,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8r4l7vgn1sfo61z5m","type":"vocabulary","arabic":"وين","english":"where","transliteration":"wein","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776783679339,"created":1776783679339,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8r4rzjllzmcr2e5hr","type":"vocabulary","arabic":"إيمتى","english":"when","transliteration":"aymata","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776783688111,"created":1776783688111,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8r55mkbmk5kn46bkm","type":"vocabulary","arabic":"ليه","english":"why","transliteration":"leh","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776783705788,"created":1776783705788,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8r5aufx5elcsreybs","type":"vocabulary","arabic":"كيف","english":"how","transliteration":"keif","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776783712551,"created":1776783712551,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8r5i0rkomjkqmrl1h","type":"vocabulary","arabic":"أيّ","english":"ayya","transliteration":"which","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776783721851,"created":1776783721851,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8r5psk77l775w9tgn","type":"vocabulary","arabic":"بس","english":"but","transliteration":"bass","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776783731924,"created":1776783731924,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8r5ydrfqygao2fcbc","type":"vocabulary","arabic":"في","english":"there is","transliteration":"fi","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776783743055,"created":1776783743055,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8r63ubzvymxje7e1f","type":"vocabulary","arabic":"بالـ","english":"in the","transliteration":"bil","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776783750131,"created":1776783750131,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8r69pke31rawkjvw","type":"vocabulary","arabic":"بـ","english":"in","transliteration":"bi","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776783757736,"created":1776783757736,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8r6netopf0tlbt2ej","type":"vocabulary","arabic":"أو","english":"or","transliteration":"aw","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776783775493,"created":1776783775493,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8r6t5aulqqeqq4y4","type":"vocabulary","arabic":"هون","english":"here","transliteration":"hon","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776783782926,"created":1776783782926,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8r6z1evs4mtuju5pg","type":"vocabulary","arabic":"هونيك","english":"there","transliteration":"honik","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776783790562,"created":1776783790562,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8r7mtcoufpzxl2rb","type":"vocabulary","arabic":"هيدا","english":"this [ m ]","transliteration":"hayda","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776783821376,"created":1776783821376,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8r81c4rpjukjml9k","type":"vocabulary","arabic":"هيدي","english":"this [ f ]","transliteration":"hayde","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776783840196,"created":1776783840196,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8r8okte2m472sdoi9","type":"vocabulary","arabic":"كتير","english":"very","transliteration":"ktiir","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776783870317,"created":1776783870317,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8r8unkho38xcklj7s","type":"vocabulary","arabic":"شي","english":"something","transliteration":"shi","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776783878192,"created":1776783878192,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8r92nx0nka29v563lf","type":"vocabulary","arabic":"كمان","english":"also / too","transliteration":"kameen","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776783888573,"created":1776783888573,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8r9b3q0cxop9jt15pb","type":"vocabulary","arabic":"شوي","english":"little","transliteration":"shway","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776783899510,"created":1776783899510,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8r9hv7wau3lvxxej","type":"vocabulary","arabic":"بلا","english":"without","transliteration":"bala","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776783908275,"created":1776783908275,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8r9ns2wzv22eksn8","type":"vocabulary","arabic":"لازم","english":"lezim","transliteration":"must","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776783915938,"created":1776783915938,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8ra7y9n1c32075zod","type":"vocabulary","arabic":"لأنّه","english":"because","transliteration":"la2anno","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776783942081,"created":1776783942081,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8rbsyfs4pwmxhcvar","type":"vocabulary","arabic":"امبارح","english":"yesterday","transliteration":"mbere7","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776784015959,"created":1776784015959,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8rvxnw3vcmfx9sni7","type":"vocabulary","arabic":"اليوم","english":"today","transliteration":"lyom","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776784955180,"created":1776784955180,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8rw506jek6w18kx3a","type":"vocabulary","arabic":"أسبوع","english":"week","transliteration":"osbou3","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776784964694,"created":1776784964694,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8rwgjxoryr7vqo6rp","type":"vocabulary","arabic":"كل يوم","english":"every day","transliteration":"kel yawm","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776784979661,"created":1776784979661,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8rwliqxk4lymncd0a","type":"vocabulary","arabic":"عادةً","english":"usually","transliteration":"adatan","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776784986098,"created":1776784986098,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8rwvba5nezk8bmo6n","type":"vocabulary","arabic":"بعد","english":"after","transliteration":"ba3d","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776784998790,"created":1776784998790,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8rx2ym9c6i4uk1k94","type":"vocabulary","arabic":"هلأ","english":"now","transliteration":"halla2","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776785008702,"created":1776785008702,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8rxogfm0gni8q902","type":"vocabulary","arabic":"غير مرة","english":"another time","transliteration":"ghayr marra","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776785036559,"created":1776785036559,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8rxstxr5hcydejuwg","type":"vocabulary","arabic":"بكير","english":"early","transliteration":"bakir","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776785042229,"created":1776785042229,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8ry02lcd0wsnxl5nb","type":"vocabulary","arabic":"مأخر","english":"late","transliteration":"m2akhhar","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776785051613,"created":1776785051613,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8ry81dlwmrcyavpjk","type":"vocabulary","arabic":"مس","english":"evening","transliteration":"masa","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776785061937,"created":1776785061937,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8s04bt01kxp5vvttph","type":"vocabulary","arabic":"بكرا","english":"tomorrow","transliteration":"bokra","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776785150441,"created":1776785150441,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8s0f5icwoxdzoy7dl","type":"vocabulary","arabic":"الأسبوع الماضي","english":"last weekend","transliteration":"el osbou3 el madi","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776785164470,"created":1776785164470,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8s0sg3k1nc9dwkkdh","type":"vocabulary","arabic":"الأسبوع الجاي","english":"next week","transliteration":"el osbou3 el jayye","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776785181699,"created":1776785181699,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8s1nnenp6vz9n45yk","type":"vocabulary","arabic":"نهاية الأسبوع","english":"last weekend","transliteration":"nihayet el osbou3","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776785222138,"created":1776785222138,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8s25m4t3g1milvq8i","type":"vocabulary","arabic":"شهر","english":"month","transliteration":"shahr","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776785245420,"created":1776785245420,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8s2b06xa6y5z2eeus","type":"vocabulary","arabic":"سنة","english":"year","transliteration":"sene","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776785252406,"created":1776785252406,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8s2qer9l06s45eant","type":"vocabulary","arabic":"قبل","english":"before","transliteration":"abel","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776785272371,"created":1776785272371,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8s2z3tpoznavlw1lm","type":"vocabulary","arabic":"وقت","english":"time","transliteration":"wa2et","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776785283641,"created":1776785283641,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8s376dhbv69kr5kse","type":"vocabulary","arabic":"الأسبوع الماضي","english":"last week","transliteration":"el osbou3 el madi","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776785294101,"created":1776785294101,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8s3hlyyuj7duswlbi","type":"vocabulary","arabic":"هذا الأسبوع","english":"this week","transliteration":"hal asbou3","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776785307622,"created":1776785307622,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8s3ye2pjus7mbtgc","type":"vocabulary","arabic":"الأسبوع الجاي","english":"next week","transliteration":"el osbou3 el jayye","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776785329370,"created":1776785329370,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8s5yijomtia0408ld","type":"vocabulary","arabic":"أحياناً","english":"sometimes","transliteration":"a7yanan","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776785422843,"created":1776785422843,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8s683nqvqqondc2e8","type":"vocabulary","arabic":"ولا مرة","english":"never","transliteration":"walla marra","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776785435267,"created":1776785435267,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8s6sst0cdeifvwni8r","type":"vocabulary","arabic":"أسود","english":"black","transliteration":"aswad","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776785462093,"created":1776785462093,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8s70gtsy0dx90uek","type":"vocabulary","arabic":"أزرق","english":"blue","transliteration":"azra2","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776785472029,"created":1776785472029,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8s758xp04nwgdesz","type":"vocabulary","arabic":"أبيض","english":"abyad","transliteration":"white","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776785478225,"created":1776785478225,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8s7b0tl7774v715v","type":"vocabulary","arabic":"أحمر","english":"red","transliteration":"ahmar","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776785485709,"created":1776785485709,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8s7i7c681lrsofl6w","type":"vocabulary","arabic":"أخضر","english":"green","transliteration":"akhdar","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776785495016,"created":1776785495016,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8s7obupuuheyo3gwb","type":"vocabulary","arabic":"أصفر","english":"yellow","transliteration":"asfar","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776785502954,"created":1776785502954,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8s7vzjuk8y1eq8ab8","type":"vocabulary","arabic":"زهري","english":"pink","transliteration":"zahri","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776785512879,"created":1776785512879,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8s89dhr58psxqvlk","type":"vocabulary","arabic":"برتقالي","english":"orange","transliteration":"burta2ali","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776785530229,"created":1776785530229,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8s8e9xaaoiaw6wk2j","type":"vocabulary","arabic":"بني","english":"brown","transliteration":"banni","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776785536581,"created":1776785536581,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8s8xudss9w99kpnzb","type":"vocabulary","arabic":"موف","english":"purple","transliteration":"mov","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776785561941,"created":1776785561941,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8sb6lu3qbnh4kphta","type":"vocabulary","arabic":"فستان","english":"dress","transliteration":"fustan","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776785666610,"created":1776785666610,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8sbc1bak62plh5q2h","type":"vocabulary","arabic":"تنورة","english":"skirt","transliteration":"tannoura","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776785673647,"created":1776785673647,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8sbii8wnvisqk0ye","type":"vocabulary","arabic":"كنزة","english":"top","transliteration":"kenze","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776785682032,"created":1776785682032,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8sbrblribageoobjb","type":"vocabulary","arabic":"جزدان","english":"bag","transliteration":"jizdan","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776785693457,"created":1776785693457,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8sbvljzndyjvyft6n","type":"vocabulary","arabic":"قميص","english":"shirt","transliteration":"amis","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776785698999,"created":1776785698999,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8sc17qob6itu1py38","type":"vocabulary","arabic":"صباط","english":"sobat","transliteration":"shoes","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776785706278,"created":1776785706278,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8scapnj7lfawv7las","type":"vocabulary","arabic":"ضيّق","english":"tight","transliteration":"dayye2","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776785718587,"created":1776785718587,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8scgvbop5vr9u0kje","type":"vocabulary","arabic":"واسع","english":"loose","transliteration":"wesi3","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776785726567,"created":1776785726567,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8scmny5k6fkztu9zc","type":"vocabulary","arabic":"قياس","english":"size","transliteration":"2yes","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776785734078,"created":1776785734078,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8sd6groyazrtr8ta8","type":"vocabulary","arabic":"دقائق","english":"minute","transliteration":"da2aye2","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776785759739,"created":1776785759739,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8sde2aexefqqnylwn","type":"vocabulary","arabic":"ثواني","english":"seconds","transliteration":"thawing","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776785769586,"created":1776785769586,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8sdj4zz95dom158i","type":"vocabulary","arabic":"ساعات","english":"hours","transliteration":"se3at","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776785776163,"created":1776785776163,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8sfdh9n0kem97tvud","type":"vocabulary","arabic":"كعب عالي","english":"high heels","transliteration":"ka3eb 3aali","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776785862141,"created":1776785862141,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8sfwq3xztxkxt1vf9","type":"vocabulary","arabic":"مانطو","english":"coat","transliteration":"manteau","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776785887083,"created":1776785887083,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8sgumn7w4ubu1s1l4","type":"vocabulary","arabic":"بنطلون","english":"pants","transliteration":"bantaloun","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776785931023,"created":1776785931023,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8shgni7cr1ttu5xln","type":"vocabulary","arabic":"خزانة","english":"wardrobe","transliteration":"khazane","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776785959566,"created":1776785959566,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8shx9sw3w0myv4sq","type":"vocabulary","arabic":"تياب","english":"clothes","transliteration":"tyeb","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776785981104,"created":1776785981104,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8skmgk4tnwmo48gpa","type":"phrase","arabic":"قدّيش حقّه؟","english":"how much is it?","transliteration":"adde ha2o?","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776786107060,"created":1776786107060,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8sky1xfsakc21fj5e","type":"vocabulary","arabic":"سعر","english":"price","transliteration":"se3er","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776786122085,"created":1776786122085,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8sl42jc0l4s9h6vy8","type":"vocabulary","arabic":"غالي","english":"expensive","transliteration":"ghali","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776786129883,"created":1776786129883,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8slb9t4z6gf11awx","type":"vocabulary","arabic":"رخيص","english":"cheap","transliteration":"rkhis","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776786139217,"created":1776786139217,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8sliwknujm9heq0fa","type":"vocabulary","arabic":"خصم","english":"discount","transliteration":"khasem","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776786149108,"created":1776786149108,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8smhbhz8x3xxsucmr","type":"vocabulary","arabic":"إذا","english":"if","transliteration":"iza","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776786193709,"created":1776786193709,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8smvlaso0frq9b6k","type":"vocabulary","arabic":"هيداك","english":"that [ m ]","transliteration":"haydak","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776786212206,"created":1776786212206,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8sn7p2xnbv32k7ric","type":"vocabulary","arabic":"هيديك","english":"that [ f ]","transliteration":"haydik","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776786227894,"created":1776786227894,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8sno3od7the4e1eec","type":"vocabulary","arabic":"هول","english":"these / those","transliteration":"hol","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776786249156,"created":1776786249156,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8so823vr0gadoy0i9","type":"vocabulary","arabic":"مين","english":"who","transliteration":"min","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776786275019,"created":1776786275019,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8socdgvqg0p36h0u","type":"vocabulary","arabic":"شو","english":"what","transliteration":"shu","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776786280612,"created":1776786280612,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8sogk2ftn0bp78cht","type":"vocabulary","arabic":"وين","english":"where","transliteration":"wein","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776786286034,"created":1776786286034,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8somxdhgalvt0gngu","type":"vocabulary","arabic":"إيمتى","english":"when","transliteration":"aymara","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776786294289,"created":1776786294289,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8soyifdzztn9orgh8","type":"vocabulary","arabic":"ليه","english":"why","transliteration":"leh","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776786309303,"created":1776786309303,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8sp4fac4e33ggkwkn","type":"vocabulary","arabic":"كيف","english":"how","transliteration":"keif","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776786316966,"created":1776786316966,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8sp93zo6j0mws0jgc","type":"vocabulary","arabic":"أيّ","english":"which","transliteration":"ayya","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776786323039,"created":1776786323039,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8su90bhp14z0n6bxj","type":"vocabulary","arabic":"بس","english":"but","transliteration":"bass","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776786556187,"created":1776786556187,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8sud4m0xu6ej41sz7","type":"vocabulary","arabic":"في","english":"there is","transliteration":"fi","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776786561526,"created":1776786561526,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8sujy4fyttfe3ejq","type":"vocabulary","arabic":"بالـ","english":"in the","transliteration":"bil","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776786570364,"created":1776786570364,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8suppmc1la55w1bbm","type":"vocabulary","arabic":"بـ","english":"in","transliteration":"bi","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776786577834,"created":1776786577834,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8sv3zct9wgotxptbi","type":"vocabulary","arabic":"أو","english":"or","transliteration":"aw","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776786596328,"created":1776786596328,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8svi4j84m1eupse5e","type":"vocabulary","arabic":"هون","english":"here","transliteration":"hon","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776786614659,"created":1776786614659,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8svlc686tugs7gc97","type":"vocabulary","arabic":"هونيك","english":"there","transliteration":"honk","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776786618822,"created":1776786618822,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8svu6ng9ywkpo63fk","type":"vocabulary","arabic":"هيدا","english":"this [ m ]","transliteration":"hayda","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776786630287,"created":1776786630287,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8svzs63ixr7swp8qs","type":"vocabulary","arabic":"هيدي","english":"this [ f ]","transliteration":"hayde","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776786637542,"created":1776786637542,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8sx4g3td6831g5nkn","type":"vocabulary","arabic":"كتير","english":"very","transliteration":"ktiir","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776786690243,"created":1776786690243,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8sx98xm1uocxz3peb","type":"vocabulary","arabic":"شي","english":"something","transliteration":"shi","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776786696465,"created":1776786696465,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8sxeid0u2djxll835s","type":"vocabulary","arabic":"كمان","english":"also / too","transliteration":"kameen","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776786703285,"created":1776786703285,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8sxkshtt1emkn3oj","type":"vocabulary","arabic":"شوي","english":"alittle","transliteration":"shway","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776786711425,"created":1776786711425,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8sxptmp1j3n30jxz7","type":"vocabulary","arabic":"بلا","english":"without","transliteration":"bala","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776786717946,"created":1776786717946,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8sxvzsumq3h1hup1","type":"vocabulary","arabic":"لازم","english":"must","transliteration":"lezim","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776786725944,"created":1776786725944,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8sy3kbilyksyadpc","type":"vocabulary","arabic":"لكن","english":"then / so / however","transliteration":"laken","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776786735755,"created":1776786735755,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8sykehhd8r8igmc9e","type":"vocabulary","arabic":"قهوة","english":"coffee","transliteration":"ahwe","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776786757577,"created":1776786757577,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8syprvhjwq81rugla","type":"vocabulary","arabic":"حليب","english":"milk","transliteration":"halib","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776786764539,"created":1776786764539,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8sytkcljp33yi6pd","type":"vocabulary","arabic":"سكر","english":"sugar","transliteration":"sukkar","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776786769452,"created":1776786769452,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8syzo2qlq5xnyx9ff","type":"vocabulary","arabic":"فاتورة","english":"bill","transliteration":"fatoora","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776786777362,"created":1776786777362,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8sz94tdj3vc4yw6et","type":"vocabulary","arabic":"ادفع","english":"I pay","transliteration":"edfa3","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776786789629,"created":1776786789629,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8szoc1mpmt60w1msd","type":"vocabulary","arabic":"فطور","english":"breakfast","transliteration":"terwi2a","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776786809329,"created":1776786809329,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8szxxdwwneztw0tt","type":"vocabulary","arabic":"غدا","english":"lunch","transliteration":"ghada","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776786821761,"created":1776786821761,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8t06utarnh33cjpus","type":"vocabulary","arabic":"عشا","english":"dinner","transliteration":"3asha","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776786833333,"created":1776786833333,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8t0uidkk1obynuco8","type":"vocabulary","arabic":"ولا شي","english":"nothing","transliteration":"wala shi","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776786863989,"created":1776786863989,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8t14hnw2b3rnu3ve","type":"vocabulary","arabic":"كل شي","english":"everything","transliteration":"kel shi","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776786876923,"created":1776786876923,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8t1badyztuktkmsu","type":"vocabulary","arabic":"حدا","english":"someone","transliteration":"hada","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776786885733,"created":1776786885733,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8t1kf0xw49fdbpbyl","type":"vocabulary","arabic":"ولا حدا","english":"no one","transliteration":"wala hada","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776786897564,"created":1776786897564,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8t2aywptj5xjn97ah","type":"vocabulary","arabic":"كل الناس","english":"everyone","transliteration":"kel nas","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776786931976,"created":1776786931976,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8t34apm22oe3okoj","type":"vocabulary","arabic":"بنص","english":"during","transliteration":"b nos","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776786969985,"created":1776786969985,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8t3c0yp8l1nrgl3h","type":"vocabulary","arabic":"أوقات","english":"sometimes","transliteration":"aw2at","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776786980002,"created":1776786980002,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8t44ozh0ckv3tg4iw","type":"vocabulary","arabic":"أبداً","english":"never","transliteration":"abadan","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776787017155,"created":1776787017155,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8tg7rthk4jckbnd","type":"vocabulary","arabic":"صغير","english":"small","transliteration":"zghiir","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776787581017,"created":1776787581017,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8tgff8w1j9p8eqdyd","type":"vocabulary","arabic":"سخن","english":"hot [ temperature ]","transliteration":"sokhon","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776787590932,"created":1776787590932,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8tgmlwpu1a6vnawqm","type":"vocabulary","arabic":"وسط","english":"wasat","transliteration":"medium","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776787600244,"created":1776787600244,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8tgwoufado0fuq344","type":"vocabulary","arabic":"بارد","english":"cold [ temperature ]","transliteration":"berid","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776787613310,"created":1776787613310,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8th6k9hfceyoe86dp","type":"vocabulary","arabic":"كبير","english":"big / large","transliteration":"kbiir","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776787626105,"created":1776787626105,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8ti3xml9a0my235t","type":"vocabulary","arabic":"عصير","english":"juice","transliteration":"3asiir","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776787669354,"created":1776787669354,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8tiijvued3r67hufr","type":"phrase","arabic":"بدّي اطلب","english":"I want to order","transliteration":"badde otlob","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776787688299,"created":1776787688299,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8tit5wr2uifn7gjbq","type":"vocabulary","arabic":"شي تاني","english":"anything else","transliteration":"shi tene","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776787702052,"created":1776787702052,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8tj7a2hjb0rhsx7p5","type":"phrase","arabic":"تكرم عيونك","english":"with pleasure","transliteration":"tikram 3aynak","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776787720346,"created":1776787720346,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8tjpoyr09rlf1sbdf","type":"vocabulary","arabic":"نعيّط","english":"we call ( someone )","transliteration":"n3ayyet","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776787744210,"created":1776787744210,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8tjuz2sf2l6lj8oc9","type":"vocabulary","arabic":"محل","english":"place","transliteration":"mahal","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776787751054,"created":1776787751054,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8tk38k3jex1u6ldl3","type":"vocabulary","arabic":"شخصين","english":"two people","transliteration":"shakhsein","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776787761764,"created":1776787761764,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8tka7vac0qsn37nwn","type":"vocabulary","arabic":"طاولة","english":"table","transliteration":"tawle","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776787770811,"created":1776787770811,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8tkmgkab5u9fnjmoe","type":"phrase","arabic":"خد وقتك","english":"take your time","transliteration":"khod wa2tak","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776787786676,"created":1776787786676,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8tl5aezjbkwr321mg","type":"phrase","arabic":"لو سمحت","english":"excuse me","transliteration":"law sama7t","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776787811078,"created":1776787811078,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8tpiito4ds4j3vngb","type":"phrase","arabic":"ممكن","english":"can I","transliteration":"momkin","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776788014853,"created":1776788014853,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8tppwkz7v9l2347v9","type":"vocabulary","arabic":"زيادة","english":"extra","transliteration":"ziyede","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776788024420,"created":1776788024420,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8tq08hgxvr3k4823u","type":"vocabulary","arabic":"خفيف","english":"light","transliteration":"khafif","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776788037809,"created":1776788037809,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8tq9rbbu65638s3i","type":"vocabulary","arabic":"عندن","english":"they have","transliteration":"3andon","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776788050151,"created":1776788050151,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8tqhostagcluu4vrk","type":"vocabulary","arabic":"حلو","english":"helou","transliteration":"sweets","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776788060428,"created":1776788060428,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8tqtq2yxbaejn8j5","type":"phrase","arabic":"فينا نزيد","english":"can we add","transliteration":"fina nzid","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776788076026,"created":1776788076026,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8tr34ek97ow6x8v5","type":"vocabulary","arabic":"كاس","english":"cup / glass","transliteration":"kas","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776788088206,"created":1776788088206,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8trgg0bsdhqaid4kp","type":"vocabulary","arabic":"قنينة","english":"bottle","transliteration":"2anine","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776788105472,"created":1776788105472,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]},{"id":"mo8trngjp8ao9r7mdwm","type":"vocabulary","arabic":"جاهز","english":"ready","transliteration":"jehiz","notes":"","interval":1,"easeFactor":2.5,"repetitions":0,"status":"new","due":1776788114563,"created":1776788114563,"reviewCount":0,"correctCount":0,"lastReviewed":null,"altAnswers":[]}],"folders":[{"id":"f1","name":"Greetings","cardIds":["1","2","3","4","5","6","7","8","9","10","11"],"created":1776773885179},{"id":"mo8lbpeg5em2oxwme84","name":"7. ORDERING + FOOD","cardIds":["mo8sykehhd8r8igmc9e","mo8syprvhjwq81rugla","mo8sytkcljp33yi6pd","mo8syzo2qlq5xnyx9ff","mo8sz94tdj3vc4yw6et","mo8szoc1mpmt60w1msd","mo8szxxdwwneztw0tt","mo8t06utarnh33cjpus","mo8tg7rthk4jckbnd","mo8tgff8w1j9p8eqdyd","mo8tgmlwpu1a6vnawqm","mo8tgwoufado0fuq344","mo8th6k9hfceyoe86dp","mo8ti3xml9a0my235t","mo8tiijvued3r67hufr","mo8tit5wr2uifn7gjbq","mo8tj7a2hjb0rhsx7p5","mo8tjpoyr09rlf1sbdf","mo8tjuz2sf2l6lj8oc9","mo8tk38k3jex1u6ldl3","mo8tka7vac0qsn37nwn","mo8tkmgkab5u9fnjmoe","mo8tl5aezjbkwr321mg","mo8tpiito4ds4j3vngb","mo8tppwkz7v9l2347v9","mo8tq08hgxvr3k4823u","mo8tq9rbbu65638s3i","mo8tqhostagcluu4vrk","mo8tqtq2yxbaejn8j5","mo8tr34ek97ow6x8v5","mo8trgg0bsdhqaid4kp","mo8trngjp8ao9r7mdwm"],"created":1776773933656},{"id":"mo8lc520eb2v3msoq5b","name":"8. PERSONALITY + PHYSICAL","cardIds":[],"created":1776773953944},{"id":"mo8lcg22ca46jy2kio4","name":"4. VERBS + CONJUGATIONS","cardIds":[],"created":1776773968202},{"id":"mo8lu6299g205n4n2zv","name":"2. NUMBERS","cardIds":[],"created":1776774795057},{"id":"mo8lu96ilj9j98qk1jd","name":"3. COLOURS","cardIds":["mo8s6sst0cdeifvwni8r","mo8s70gtsy0dx90uek","mo8s758xp04nwgdesz","mo8s7b0tl7774v715v","mo8s7i7c681lrsofl6w","mo8s7obupuuheyo3gwb","mo8s7vzjuk8y1eq8ab8","mo8s89dhr58psxqvlk","mo8s8e9xaaoiaw6wk2j","mo8s8xudss9w99kpnzb"],"created":1776774799098},{"id":"mo8lvhbbf4k2mq8gore","name":"9. SHOPPING","cardIds":["mo8sb6lu3qbnh4kphta","mo8sbc1bak62plh5q2h","mo8sbii8wnvisqk0ye","mo8sbrblribageoobjb","mo8sbvljzndyjvyft6n","mo8sc17qob6itu1py38","mo8scapnj7lfawv7las","mo8scgvbop5vr9u0kje","mo8scmny5k6fkztu9zc","mo8sfdh9n0kem97tvud","mo8sfwq3xztxkxt1vf9","mo8sgumn7w4ubu1s1l4","mo8shgni7cr1ttu5xln","mo8shx9sw3w0myv4sq","mo8skmgk4tnwmo48gpa","mo8sky1xfsakc21fj5e","mo8sl42jc0l4s9h6vy8","mo8slb9t4z6gf11awx","mo8sliwknujm9heq0fa"],"created":1776774856295},{"id":"mo8lvpcme2fepb0qz3r","name":"10. NAVIGATION + TRAVEL","cardIds":[],"created":1776774866710},{"id":"mo8lwlh0i4z4wc14iz8","name":"6. PHRASES","cardIds":[],"created":1776774908340},{"id":"mo8rao0powgh6pdsbm","name":"5. TIME","cardIds":["mo8rbsyfs4pwmxhcvar","mo8rvxnw3vcmfx9sni7","mo8rw506jek6w18kx3a","mo8rwgjxoryr7vqo6rp","mo8rwliqxk4lymncd0a","mo8rwvba5nezk8bmo6n","mo8rx2ym9c6i4uk1k94","mo8rxogfm0gni8q902","mo8rxstxr5hcydejuwg","mo8ry02lcd0wsnxl5nb","mo8ry81dlwmrcyavpjk","mo8s04bt01kxp5vvttph","mo8s0f5icwoxdzoy7dl","mo8s0sg3k1nc9dwkkdh","mo8s1nnenp6vz9n45yk","mo8s25m4t3g1milvq8i","mo8s2b06xa6y5z2eeus","mo8s2qer9l06s45eant","mo8s2z3tpoznavlw1lm","mo8s376dhbv69kr5kse","mo8s3hlyyuj7duswlbi","mo8s3ye2pjus7mbtgc","mo8s5yijomtia0408ld","mo8s683nqvqqondc2e8","mo8sd6groyazrtr8ta8","mo8sde2aexefqqnylwn","mo8sdj4zz95dom158i","mo8t34apm22oe3okoj","mo8t3c0yp8l1nrgl3h","mo8t44ozh0ckv3tg4iw"],"created":1776783962905},{"id":"mo8sm4po4hreu7obm95","name":"1. BASICS","cardIds":["mo8smhbhz8x3xxsucmr","mo8smvlaso0frq9b6k","mo8sn7p2xnbv32k7ric","mo8sno3od7the4e1eec","mo8so823vr0gadoy0i9","mo8socdgvqg0p36h0u","mo8sogk2ftn0bp78cht","mo8somxdhgalvt0gngu","mo8soyifdzztn9orgh8","mo8sp4fac4e33ggkwkn","mo8sp93zo6j0mws0jgc","mo8su90bhp14z0n6bxj","mo8sud4m0xu6ej41sz7","mo8sujy4fyttfe3ejq","mo8suppmc1la55w1bbm","mo8sv3zct9wgotxptbi","mo8svi4j84m1eupse5e","mo8svlc686tugs7gc97","mo8svu6ng9ywkpo63fk","mo8svzs63ixr7swp8qs","mo8sx4g3td6831g5nkn","mo8sx98xm1uocxz3peb","mo8sxeid0u2djxll835s","mo8sxkshtt1emkn3oj","mo8sxptmp1j3n30jxz7","mo8sxvzsumq3h1hup1","mo8sy3kbilyksyadpc","mo8t0uidkk1obynuco8","mo8t14hnw2b3rnu3ve","mo8t1badyztuktkmsu","mo8t1kf0xw49fdbpbyl","mo8t2aywptj5xjn97ah"],"created":1776786177372},{"id":"mo8swjaoc6a478ippx","name":"0. ADJECTIVES","cardIds":[],"created":1776786662832}],"quizHistory":[],"streak":0,"lastStudied":null};
 
+// ── UTF-8 ↔ BASE64 (handles Arabic / non-ASCII) ──────────────────────────────
+const toB64   = s => btoa(unescape(encodeURIComponent(s)));
+const fromB64 = b => decodeURIComponent(escape(atob(b.replace(/\n/g,''))));
+
+// ── STORAGE KEYS ─────────────────────────────────────────────────────────────
+const SESSION_KEY = 'arabic_session';   // in-session card data (survives refresh)
+const GH_CFG_KEY  = 'arabic_gh_cfg';   // GitHub config (token, repo, etc.)
+
 // ── DATA ─────────────────────────────────────────────────────────────────────
 const DB = {
-  // Stable key — never versioned again. Future updates always use this.
-  KEY: 'arabic_app_data',
-  ALL_KEYS: ['arabic_app_data','arabic_v3','arabic_v2','arabic_study_v1'],
   load() {
+    // Prefer session data (persists across refreshes until GitHub push completes)
     try {
-      // Gather every dataset we can find across all known keys
-      const datasets = this.ALL_KEYS
-        .map(k => { try { const r = localStorage.getItem(k); return r ? JSON.parse(r) : null; } catch { return null; } })
-        .filter(d => d && Array.isArray(d.cards));
-
-      if (!datasets.length) return this.seed();
-
-      // Use the dataset with the most cards as the base (most complete)
-      datasets.sort((a,b) => (b.cards||[]).length - (a.cards||[]).length);
-      const data = datasets[0];
-
-      // Merge unique cards + folders from every other dataset
-      const cardIds   = new Set(data.cards.map(c => c.id));
-      const folderIds = new Set((data.folders||[]).map(f => f.id));
-      if (!data.folders) data.folders = [];
-      if (!data.quizHistory) data.quizHistory = [];
-      for (let i = 1; i < datasets.length; i++) {
-        const src = datasets[i];
-        (src.cards||[]).forEach(c => { if (!cardIds.has(c.id)) { data.cards.push(c); cardIds.add(c.id); } });
-        (src.folders||[]).forEach(f => {
-          if (!folderIds.has(f.id)) { data.folders.push({...f}); folderIds.add(f.id); }
-          else {
-            const t = data.folders.find(x => x.id === f.id);
-            (f.cardIds||[]).forEach(cid => { if (!t.cardIds.includes(cid)) t.cardIds.push(cid); });
-          }
-        });
-        const existingQIds = new Set(data.quizHistory.map(q => q.id));
-        (src.quizHistory||[]).forEach(q => { if (!existingQIds.has(q.id)) data.quizHistory.push(q); });
-      }
-
-      // Guarantee all current fields exist on every card
-      data.cards.forEach(c => {
-        if (!Array.isArray(c.altAnswers)) c.altAnswers = [];
-        if (c.reviewCount  == null) c.reviewCount  = 0;
-        if (c.correctCount == null) c.correctCount = 0;
-        if (c.lastReviewed == null) c.lastReviewed = null;
-      });
-      data.folders.forEach(f => { if (!Array.isArray(f.cardIds)) f.cardIds = []; });
-      if (!data.streak) data.streak = 0;
-
-      // Always write back to the stable key so the next load is instant
-      localStorage.setItem(this.KEY, JSON.stringify(data));
-      return data;
-    } catch(e) { console.warn('DB load error', e); return this.seed(); }
+      const s = JSON.parse(localStorage.getItem(SESSION_KEY));
+      if (s?.cards?.length) return DB._normalise(s);
+    } catch {}
+    // Fall back to the embedded SEED_DATA
+    return DB._normalise(JSON.parse(JSON.stringify(SEED_DATA)));
   },
-  save(d) { localStorage.setItem(this.KEY, JSON.stringify(d)); },
-  seed() {
-    const now = Date.now();
-    const card = (id,type,ar,en,tr,alts=[]) => ({id,type,arabic:ar,english:en,transliteration:tr,altAnswers:alts,notes:'',interval:1,easeFactor:2.5,repetitions:0,status:'new',due:now,created:now,reviewCount:0,correctCount:0,lastReviewed:null});
-    const cards = [
-      card('1','vocabulary','مرحبا','Hello','Marhaba',['hi','ahlan']),
-      card('2','vocabulary','شكراً','Thank you','Shukran',['shukran jazeelan']),
-      card('3','vocabulary','نعم','Yes',"Na'am"),
-      card('4','vocabulary','لا','No','La'),
-      card('5','vocabulary','من فضلك','Please','Min fadlak'),
-      card('6','vocabulary','مع السلامة','Goodbye',"Ma'a as-salama",['bye','ma3 el salama']),
-      card('7','phrase','كيف حالك؟','How are you?','Kayfa halak?',['how are you doing','kif halak']),
-      card('8','phrase','أنا بخير','I am fine','Ana bikhayr',['I am well','ana mabsoot']),
-      card('9','phrase','ما اسمك؟','What is your name?','Ma ismuk?',['eish ismak']),
-      card('10','phrase','صباح الخير','Good morning','Sabah al-khayr',['sabah el noor reply']),
-      card('11','phrase','مساء الخير','Good evening',"Masa' al-khayr"),
-      card('12','vocabulary','بيت','House','Bayt',['home','bait']),
-      card('13','vocabulary','كتاب','Book','Kitab'),
-      card('14','vocabulary','ماء','Water',"Ma'a",['moya']),
-      card('15','vocabulary','خبز','Bread','Khubz',['eish']),
-      card('16','vocabulary','يمين','Right','Yamin'),
-      card('17','vocabulary','يسار','Left','Yasar'),
-    ];
-    const folders = [
-      {id:'f1',name:'Greetings',cardIds:['1','2','3','4','5','6','7','8','9','10','11'],created:now},
-      {id:'f2',name:'Home & Objects',cardIds:['12','13'],created:now},
-      {id:'f3',name:'Food & Drink',cardIds:['14','15'],created:now},
-      {id:'f4',name:'Navigation',cardIds:['16','17'],created:now},
-    ];
-    return { cards, folders, quizHistory:[], streak:0, lastStudied:null };
+  save(d) {
+    try { localStorage.setItem(SESSION_KEY, JSON.stringify(d)); } catch {}
+    app.schedulePush();
+  },
+  _normalise(d) {
+    d.cards.forEach(c => {
+      if (!Array.isArray(c.altAnswers)) c.altAnswers = [];
+      if (c.reviewCount  == null) c.reviewCount  = 0;
+      if (c.correctCount == null) c.correctCount = 0;
+      if (c.lastReviewed == null) c.lastReviewed = null;
+    });
+    (d.folders||[]).forEach(f => { if (!Array.isArray(f.cardIds)) f.cardIds = []; });
+    if (!d.streak)      d.streak      = 0;
+    if (!d.quizHistory) d.quizHistory = [];
+    if (!d.lastStudied) d.lastStudied = null;
+    return d;
   }
 };
 
@@ -738,6 +782,7 @@ const app = {
   mmcCardId:null, mmcAction:'move',
 
   init(){
+    this.loadGhConfig();
     this.data=DB.load();
     this.updateStreak();
     document.querySelectorAll('.nav-btn').forEach(b=>b.addEventListener('click',()=>this.navigate(b.dataset.view)));
@@ -747,6 +792,7 @@ const app = {
     this.bindCardForm();
     document.getElementById('mf-name').addEventListener('keydown',e=>{if(e.key==='Enter')this.saveFolderModal();});
     document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.style.display='none';}));
+    if(this.ghConfig?.token)this.setSyncStatus('synced','GitHub connected');
     this.navigate('dashboard');
   },
   save(){DB.save(this.data);},
@@ -1007,6 +1053,7 @@ const app = {
     else{const c={id:uid(),...data,interval:1,easeFactor:2.5,repetitions:0,status:'new',due:Date.now(),created:Date.now(),reviewCount:0,correctCount:0,lastReviewed:null};this.data.cards.push(c);if(this.currentFolder)this.currentFolder.cardIds.push(c.id);}
     this.save();this.closeCardModal();
     if(this.currentFolder)this.renderFolderCards();
+    if(document.getElementById('view-settings')?.classList.contains('active'))this.renderSettingsCards();
     this.syncFolderDropdowns();
   },
 
@@ -1324,117 +1371,174 @@ const app = {
         ${weak.length?`<div class="weak-section"><div class="weak-title">Needs work</div>${weak.map(c=>`<div class="weak-item"><span class="weak-ar">${c.arabic}</span><span style="color:var(--muted)">${c.english}</span><span class="badge">${Math.round((c.correctCount||0)/c.reviewCount*100)}%</span></div>`).join('')}</div>`:''}
       </div>`;
     }).join('');
-    document.getElementById('recovery-panel').innerHTML='';
   },
 
-  // ── DATA RECOVERY ──────────────────────────────────────────────────────────
-  renderRecovery(){
-    const panel = document.getElementById('recovery-panel');
+  // ── SETTINGS ───────────────────────────────────────────────────────────────
+  render_settings(){
+    this.renderSettingsCards();
+    document.getElementById('export-panel').style.display='none';
+  },
 
-    // Scan EVERY key in localStorage — not just known names
-    const found = [];
-    for (let i = 0; i < localStorage.length; i++) {
-      const k = localStorage.key(i);
-      try {
-        const raw = localStorage.getItem(k);
-        if (!raw || raw[0] !== '{') continue;
-        const d = JSON.parse(raw);
-        if (Array.isArray(d.cards) && d.cards.length > 0) {
-          found.push({ key: k, cards: d.cards.length, folders: (d.folders||[]).length });
-        }
-      } catch { continue; }
-    }
-    found.sort((a,b) => b.cards - a.cards);
-
-    const currentKey = DB.KEY;
-    const rows = found.length ? found.map(f => `
-      <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:.65rem 1rem;flex-wrap:wrap;gap:.5rem">
-        <div>
-          <span style="font-weight:600;font-size:.82rem;font-family:monospace;color:var(--pink)">${f.key}</span>
-          <span style="font-size:.78rem;color:var(--muted);margin-left:.75rem">${f.cards} cards · ${f.folders} folders</span>
-          ${f.key===currentKey?'<span style="font-size:.7rem;color:var(--purple);margin-left:.5rem;border:1px solid var(--purple);border-radius:100px;padding:.1rem .4rem">current</span>':''}
+  renderSettingsCards(){
+    const q=(document.getElementById('settings-search')?.value||'').trim().toLowerCase();
+    let cards=this.data.cards;
+    if(q)cards=cards.filter(c=>c.arabic.toLowerCase().includes(q)||c.english.toLowerCase().includes(q)||(c.transliteration||'').toLowerCase().includes(q));
+    const folderOf=c=>this.data.folders.find(f=>f.cardIds.includes(c.id));
+    document.getElementById('settings-count').textContent=`${cards.length} card${cards.length!==1?'s':''}`;
+    document.getElementById('settings-cards-list').innerHTML=cards.map(card=>{
+      const f=folderOf(card);
+      const alts=(card.altAnswers||[]).filter(Boolean);
+      return `<div class="card-item">
+        <div class="ci-ar">${card.arabic}</div>
+        <div class="ci-en">${card.english}</div>
+        ${card.transliteration?`<div class="ci-tr">${card.transliteration}</div>`:''}
+        ${alts.length?`<div class="ci-alt">also: ${alts.map(a=>`<span>${a}</span>`).join('')}</div>`:''}
+        <div class="ci-footer">
+          <div style="display:flex;gap:.3rem;flex-wrap:wrap">
+            <span class="badge ${card.type==='vocabulary'?'vocab':'phrase'}">${card.type}</span>
+            ${f?`<span class="badge">${f.name}</span>`:''}
+          </div>
+          <div style="display:flex;gap:.3rem">
+            <button class="icon-btn" onclick="app.openCardModal('${card.id}')">✏️</button>
+            <button class="icon-btn danger" onclick="app.deleteCard('${card.id}')">🗑</button>
+          </div>
         </div>
-        ${f.key!==currentKey?`<button class="btn btn-pink btn-sm" onclick="app.recoverFrom('${f.key}')">Merge into current</button>`:'<span style="font-size:.78rem;color:var(--muted)">active</span>'}
-      </div>`).join('') : '<p style="font-size:.85rem;color:var(--muted);margin-bottom:1rem">No card data found in this browser\'s localStorage. Use the manual paste below.</p>';
-
-    panel.innerHTML = `
-      <div style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:1.25rem">${rows}</div>
-      <details style="margin-top:.5rem">
-        <summary style="cursor:pointer;font-size:.85rem;color:var(--muted);padding:.5rem 0;user-select:none">
-          ▸ Manual paste — copy data from browser console
-        </summary>
-        <div style="margin-top:.875rem">
-          <p style="font-size:.82rem;color:var(--muted);margin-bottom:.75rem;line-height:1.6">
-            Open <strong style="color:var(--text)">index.html</strong> in your browser, press <strong style="color:var(--text)">F12</strong> → Console tab, paste this and press Enter — then copy the result and paste it below:<br>
-            <code style="display:block;background:var(--bg);border:1px solid var(--border);border-radius:var(--rs);padding:.6rem .85rem;margin-top:.5rem;font-size:.8rem;color:var(--orange);word-break:break-all">JSON.stringify(Object.fromEntries(Object.keys(localStorage).map(k=>[k,localStorage.getItem(k)])))</code>
-          </p>
-          <textarea id="paste-import" class="inp" rows="5" placeholder='Paste the JSON output here…' style="font-size:.75rem;font-family:monospace;resize:vertical"></textarea>
-          <button class="btn btn-pink btn-sm" style="margin-top:.5rem" onclick="app.importFromPaste()">Import pasted data</button>
-        </div>
-      </details>`;
+      </div>`;
+    }).join('')||'<p style="color:var(--muted);font-size:.875rem">No cards match your search.</p>';
   },
 
-  recoverFrom(key){
-    try {
-      const raw = localStorage.getItem(key);
-      if (!raw) { alert('No data found for that key.'); return; }
-      const src = JSON.parse(raw);
-      this._mergeData(src);
-    } catch(e) { alert('Failed to read that data: ' + e.message); }
+  deleteCard(cid){
+    if(!confirm('Delete this card permanently from the session?'))return;
+    this.data.cards=this.data.cards.filter(c=>c.id!==cid);
+    this.data.folders.forEach(f=>{f.cardIds=f.cardIds.filter(id=>id!==cid);});
+    this.save();
+    this.renderSettingsCards();
+    this.syncFolderDropdowns();
   },
 
-  importFromPaste(){
-    try {
-      const text = document.getElementById('paste-import').value.trim();
-      if (!text) { alert('Nothing pasted yet.'); return; }
-      const outer = JSON.parse(text);
-      // Could be a direct data object OR a map of {key: jsonString}
-      const candidates = [];
-      if (Array.isArray(outer.cards)) {
-        candidates.push(outer);
-      } else {
-        Object.values(outer).forEach(v => {
-          try { const d = JSON.parse(v); if (Array.isArray(d.cards)) candidates.push(d); } catch {}
-        });
-      }
-      if (!candidates.length) { alert('No card data found in the pasted content.'); return; }
-      candidates.sort((a,b) => b.cards.length - a.cards.length);
-      let totalAdded = 0;
-      candidates.forEach(src => { totalAdded += this._mergeData(src, true); });
-      this.save();
-      alert(`Done! Imported ${totalAdded} new cards.`);
-      this.render_results();
-      this.renderRecovery();
-    } catch(e) { alert('Could not parse that data.\n\n' + e.message); }
+  showExportData(){
+    const panel=document.getElementById('export-panel');
+    panel.style.display='flex';
+    const exportData={cards:this.data.cards,folders:this.data.folders,quizHistory:this.data.quizHistory,streak:this.data.streak,lastStudied:this.data.lastStudied};
+    document.getElementById('export-json').value=JSON.stringify(exportData);
   },
 
-  _mergeData(src, dryRun=false){
-    const cardIds   = new Set(this.data.cards.map(c => c.id));
-    const folderIds = new Set(this.data.folders.map(f => f.id));
-    let addedCards = 0, addedFolders = 0;
-    (src.cards||[]).forEach(c => {
-      if (!cardIds.has(c.id)) {
-        if (!Array.isArray(c.altAnswers)) c.altAnswers = [];
-        if (c.reviewCount  == null) c.reviewCount  = 0;
-        if (c.correctCount == null) c.correctCount = 0;
-        if (c.lastReviewed == null) c.lastReviewed = null;
-        this.data.cards.push(c); cardIds.add(c.id); addedCards++;
-      }
-    });
-    (src.folders||[]).forEach(f => {
-      if (!folderIds.has(f.id)) { this.data.folders.push({...f}); folderIds.add(f.id); addedFolders++; }
-      else {
-        const t = this.data.folders.find(x => x.id === f.id);
-        (f.cardIds||[]).forEach(cid => { if (!t.cardIds.includes(cid)) t.cardIds.push(cid); });
-      }
-    });
-    if (!dryRun) {
-      this.save();
-      alert(`Done! Merged ${addedCards} new cards and ${addedFolders} new folders.`);
-      this.render_results();
-      this.renderRecovery();
+  // ── GITHUB AUTO-SYNC ───────────────────────────────────────────────────────
+  ghConfig: null,
+  _syncTimer: null,
+
+  loadGhConfig(){
+    try { this.ghConfig=JSON.parse(localStorage.getItem(GH_CFG_KEY))||null; } catch { this.ghConfig=null; }
+  },
+
+  saveGhConfig(){
+    const token  = document.getElementById('gh-token').value.trim();
+    const full   = document.getElementById('gh-repo').value.trim();
+    const branch = document.getElementById('gh-branch').value.trim()||'main';
+    const path   = document.getElementById('gh-path').value.trim()||'index.html';
+    if(!token||!full.includes('/')){
+      this._ghMsg('error','Token and repository (owner/repo) are both required.');return;
     }
-    return addedCards;
+    const [owner,...repoParts]=full.split('/');
+    const repo=repoParts.join('/');
+    this.ghConfig={token,owner,repo,branch,path};
+    localStorage.setItem(GH_CFG_KEY,JSON.stringify(this.ghConfig));
+    this.testGhConnection();
+  },
+
+  clearGhConfig(){
+    this.ghConfig=null;
+    localStorage.removeItem(GH_CFG_KEY);
+    this.renderGhConfig();
+    this.setSyncStatus('idle');
+  },
+
+  async testGhConnection(){
+    this._ghMsg('syncing','Testing connection…');
+    try{
+      const f=await this._ghGet();
+      this._ghMsg('synced',`✓ Connected — ${this.ghConfig.owner}/${this.ghConfig.repo}`);
+      this.renderGhConfig();
+    }catch(e){
+      this._ghMsg('error','Connection failed: '+e.message);
+    }
+  },
+
+  schedulePush(){
+    if(!this.ghConfig?.token)return;
+    this.setSyncStatus('pending');
+    clearTimeout(this._syncTimer);
+    this._syncTimer=setTimeout(()=>this.pushToGitHub(),2500);
+  },
+
+  async pushToGitHub(){
+    if(!this.ghConfig?.token)return;
+    this.setSyncStatus('syncing');
+    try{
+      const file=await this._ghGet();
+      const html=fromB64(file.content);
+      const newData=JSON.stringify({cards:this.data.cards,folders:this.data.folders,quizHistory:this.data.quizHistory,streak:this.data.streak,lastStudied:this.data.lastStudied});
+      const lines=html.split('\n');
+      const idx=lines.findIndex(l=>l.trimStart().startsWith('const SEED_DATA = '));
+      if(idx===-1)throw new Error('SEED_DATA line not found in file');
+      lines[idx]='const SEED_DATA = '+newData+';';
+      const newHtml=lines.join('\n');
+      const {owner,repo,branch,path,token}=this.ghConfig;
+      const putRes=await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`,{
+        method:'PUT',
+        headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json',Accept:'application/vnd.github+json'},
+        body:JSON.stringify({message:`sync: ${this.data.cards.length} cards`,content:toB64(newHtml),sha:file.sha,branch})
+      });
+      if(!putRes.ok){const e=await putRes.json();throw new Error(e.message||`HTTP ${putRes.status}`);}
+      this.setSyncStatus('synced');
+      // Session data now committed — clear so next deploy's SEED_DATA takes over cleanly
+      try{localStorage.removeItem(SESSION_KEY);}catch{}
+    }catch(e){
+      console.error('GitHub push failed:',e);
+      this.setSyncStatus('error',e.message);
+    }
+  },
+
+  async _ghGet(){
+    const {owner,repo,branch,path,token}=this.ghConfig;
+    const res=await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`,{
+      headers:{Authorization:`Bearer ${token}`,Accept:'application/vnd.github+json'}
+    });
+    if(!res.ok){const e=await res.json();throw new Error(e.message||`HTTP ${res.status}`);}
+    return res.json();
+  },
+
+  setSyncStatus(state,msg){
+    const el=document.getElementById('sync-indicator');
+    if(!el)return;
+    const labels={idle:'·',pending:'⏳ Pending',syncing:'🔄 Syncing…',synced:'☁️ Synced',error:'⚠️ Sync error'};
+    el.textContent=labels[state]||state;
+    el.title=msg||state;
+    el.className='sync-indicator '+state;
+  },
+
+  _ghMsg(state,msg){
+    ['gh-status-msg','gh-status-msg-connected'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el){el.textContent=msg;el.className='gh-status '+state;}
+    });
+  },
+
+  renderGhConfig(){
+    const connected=!!(this.ghConfig?.token);
+    const form=document.getElementById('gh-config-form');
+    const info=document.getElementById('gh-connected-info');
+    if(form)form.style.display=connected?'none':'block';
+    if(info)info.style.display=connected?'block':'none';
+    if(connected&&document.getElementById('gh-connected-repo'))
+      document.getElementById('gh-connected-repo').textContent=`${this.ghConfig.owner}/${this.ghConfig.repo} (${this.ghConfig.branch})`;
+  },
+
+  render_settings(){
+    this.renderSettingsCards();
+    this.renderGhConfig();
+    const ep=document.getElementById('export-panel');
+    if(ep)ep.style.display='none';
   }
 };
 
